@@ -1,0 +1,943 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Pour Syrine — Une Lettre des Mers</title>
+<link href="https://fonts.googleapis.com/css2?family=Pirata+One&family=Cinzel+Decorative:wght@400;700;900&family=Cinzel:wght@400;600&family=IM+Fell+English:ital@0;1&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--gold:#D4A017;--gold2:#F5CC5A;--gold3:#8B6508;--deep:#010408;--mid:#030a14;--parch:#F2E4C0;--parch2:#C9A84C;--parch3:#7A5C2E;--red:#8B1515}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--deep);-webkit-tap-highlight-color:transparent}
+body{font-family:'IM Fell English',Georgia,serif;cursor:none;color:var(--parch)}
+
+/* CURSOR - Hidden on touch devices */
+#cursor{position:fixed;width:32px;height:32px;pointer-events:none;z-index:99999;transform:translate(-50%,-50%);font-size:24px;transition:transform 0.08s;text-shadow:0 0 10px rgba(0,0,0,0.8)}
+@media (pointer: coarse) { #cursor, .etog, .ebtn, .nb, .bg, .ybtn, .nbtn, .clue, .scard { cursor: auto !important; } #cursor { display: none !important; } body{cursor:auto} }
+
+/* BACKGROUND EFFECTS */
+canvas#scene{position:fixed;inset:0;z-index:0;width:100%;height:100%}
+#grain{position:fixed;inset:0;z-index:2;pointer-events:none;opacity:0.04;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");animation:gr 0.12s steps(1) infinite}
+@keyframes gr{0%{transform:translate(0,0)}20%{transform:translate(-2%,-3%)}40%{transform:translate(3%,1%)}60%{transform:translate(-1%,4%)}80%{transform:translate(4%,-2%)}100%{transform:translate(-2%,3%)}}
+
+/* LANTERN VIGNETTE */
+#vignette{position:fixed;inset:0;z-index:3;pointer-events:none;background:radial-gradient(ellipse at center,transparent 25%,rgba(1,4,8,0.92) 100%);animation:lantern 4s ease-in-out infinite alternate}
+@keyframes lantern{0%{opacity:0.85}100%{opacity:1}}
+#light{position:fixed;inset:0;z-index:4;pointer-events:none;background:transparent;transition:background 0.05s}
+
+/* PAGES */
+.page{position:fixed;inset:0;z-index:10;display:flex;flex-direction:column;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity 0.8s cubic-bezier(0.16,1,0.3,1)}
+.page.active{opacity:1;pointer-events:all}
+.page-scroll{overflow-y:auto;overflow-x:hidden;padding-bottom:env(safe-area-inset-bottom, 100px);padding-top:20px;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;scroll-behavior:smooth}
+.page-scroll::-webkit-scrollbar{width:4px}
+.page-scroll::-webkit-scrollbar-thumb{background:rgba(212,160,23,0.3);border-radius:2px}
+
+/* NAV */
+#nav{position:fixed;bottom:0;left:0;right:0;z-index:50;display:flex;justify-content:center;flex-wrap:wrap;gap:2px;padding:12px 10px calc(15px + env(safe-area-inset-bottom));background:linear-gradient(0deg,rgba(1,4,8,0.98) 60%,transparent);box-shadow:0 -10px 30px rgba(1,4,8,0.8)}
+.nb{font-family:'Cinzel',serif;font-size:clamp(8.5px, 2.2vw, 10px);letter-spacing:0.15em;color:rgba(212,160,23,0.45);background:none;border:none;border-top:1px solid transparent;padding:10px 12px 6px;cursor:none;transition:all 0.3s;text-transform:uppercase;position:relative}
+.nb::after{content:'';position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:0;height:1px;background:var(--gold2);transition:width 0.3s}
+.nb:hover,.nb.on{color:var(--gold2);border-top-color:rgba(212,160,23,0.3);text-shadow:0 0 8px rgba(212,160,23,0.4)}
+.nb:hover::after,.nb.on::after{width:80%}
+
+/* TRANSITION */
+#trans{position:fixed;inset:0;z-index:90;pointer-events:none}
+#twc{position:absolute;inset:0;width:100%;height:100%;opacity:0}
+#tship{position:absolute;font-size:0;bottom:35%;left:-200px;z-index:91;filter:drop-shadow(0 -8px 25px rgba(212,160,23,0.5));transition:none}
+
+/* ======== PAGE HOME ======== */
+#ph .content{text-align:center;padding-bottom:60px;max-width:700px;padding-left:20px;padding-right:20px;position:relative;z-index:15}
+.skull-wrap{position:relative;display:inline-block;margin-bottom:-10px}
+.skull-glow{position:absolute;inset:-50px;background:radial-gradient(circle,rgba(212,160,23,0.3) 0%,transparent 65%);animation:pg 3s ease-in-out infinite;border-radius:50%;pointer-events:none;mix-blend-mode:screen}
+@keyframes pg{0%,100%{transform:scale(0.8);opacity:0.5}50%{transform:scale(1.2);opacity:1}}
+.skull-icon{font-size:clamp(60px,12vw,100px);display:block;animation:sw 5s ease-in-out infinite;filter:drop-shadow(0 0 30px rgba(212,160,23,0.7))}
+@keyframes sw{0%,100%{transform:rotate(-4deg) translateY(0)}50%{transform:rotate(4deg) translateY(-12px)}}
+.sub1{font-family:'Cinzel',serif;font-size:clamp(8.5px,1.8vw,12px);letter-spacing:0.4em;color:rgba(245,204,90,0.5);text-transform:uppercase;margin:18px 0 8px;animation:fu 1.2s 0.2s both;text-shadow:0 0 10px rgba(212,160,23,0.3)}
+.mtitle{font-family:'Pirata One',cursive;font-size:clamp(55px,16vw,150px);line-height:0.85;background:linear-gradient(180deg,#ffffff 0%,#fffde0 15%,var(--gold2) 45%,var(--gold) 75%,var(--gold3) 100%);-webkit-background-clip:text;background-clip:text;color:transparent;letter-spacing:2px;filter:drop-shadow(0 5px 15px rgba(0,0,0,0.8));animation:ti 1.5s cubic-bezier(0.16,1,0.3,1) both}
+@keyframes ti{from{transform:translateY(80px) scale(0.9);opacity:0;filter:blur(10px)}to{transform:translateY(0) scale(1);opacity:1;filter:blur(0)}}
+.divg{display:flex;align-items:center;gap:15px;margin:22px auto;max-width:80%;animation:fu 1.2s 0.4s both}
+.divg::before,.divg::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,transparent,var(--gold3),transparent)}
+.divg span{color:var(--gold);font-size:18px;filter:drop-shadow(0 0 8px var(--gold))}
+.fname{font-family:'Pirata One',cursive;font-size:clamp(26px,7vw,65px);color:var(--gold2);animation:fu 1.2s 0.5s both,gs 3s 1.5s ease-in-out infinite;text-shadow:0 5px 15px rgba(0,0,0,0.9)}
+@keyframes gs{0%,100%{filter:drop-shadow(0 0 15px rgba(212,160,23,0.4))}50%{filter:drop-shadow(0 0 40px rgba(245,204,90,0.8))}}
+@keyframes fu{from{opacity:0;transform:translateY(25px)}to{opacity:1;transform:translateY(0)}}
+.ebtn{font-family:'Cinzel Decorative',serif;font-size:clamp(13px,2vw,18px);font-weight:700;letter-spacing:0.1em;color:#050200;background:linear-gradient(135deg,#fffde0,var(--gold2) 40%,var(--gold) 70%,#906010);border:none;padding:16px 50px;cursor:none;position:relative;overflow:hidden;clip-path:polygon(15px 0,calc(100% - 15px) 0,100% 50%,calc(100% - 15px) 100%,15px 100%,0 50%);box-shadow:0 0 30px rgba(212,160,23,0.5),0 0 60px rgba(212,160,23,0.2);transition:all 0.3s;animation:fu 1.2s 0.8s both;margin-top:28px;text-transform:uppercase}
+.ebtn::after{content:'';position:absolute;inset:0;background:linear-gradient(110deg,transparent 35%,rgba(255,255,255,0.4) 50%,transparent 65%);transform:translateX(-120%);animation:sh 3.5s 2s infinite}
+@keyframes sh{0%{transform:translateX(-120%)}20%,100%{transform:translateX(220%)}}
+.ebtn:hover,.ebtn:active{transform:scale(1.05);box-shadow:0 0 50px rgba(245,204,90,0.8),0 0 100px rgba(212,160,23,0.4)}
+
+/* ======== PAGE LETTER ======== */
+.cinematic-title{font-family:'Cinzel Decorative',serif;font-size:clamp(18px,4vw,32px);color:var(--gold2);text-align:center;letter-spacing:0.05em;margin-bottom:6px;text-shadow:0 5px 20px rgba(0,0,0,0.8), 0 0 15px rgba(212,160,23,0.5)}
+.cinematic-sub{font-family:'Cinzel',serif;font-size:clamp(8.5px, 2vw, 10px);letter-spacing:0.3em;color:rgba(212,160,23,0.4);text-align:center;text-transform:uppercase;margin-bottom:25px;text-shadow:0 2px 5px rgba(0,0,0,0.8)}
+.scroll{max-width:730px;width:calc(100% - 20px);position:relative;margin:0 auto;
+  background:repeating-linear-gradient(0deg,transparent,transparent 27px,rgba(120,80,20,0.05) 28px),
+  linear-gradient(155deg,#e8d7ad 0%,#dcc891 20%,#e3ce86 40%,#d8c170 60%,#e4d299 80%,#d6b972 100%);
+  border-radius:3px;padding:50px 40px 60px;
+  box-shadow:0 0 0 1px rgba(80,50,10,0.5),0 0 0 4px rgba(40,20,5,0.6),0 0 0 7px rgba(80,50,10,0.3),0 30px 60px rgba(0,0,0,0.95),inset 0 0 60px rgba(80,40,5,0.3)}
+.scroll::before{content:'';position:absolute;inset:0;border-radius:3px;background:radial-gradient(ellipse at 50% 0%,rgba(255,255,200,0.2) 0%,transparent 50%),radial-gradient(ellipse at 50% 100%,rgba(40,20,0,0.3) 0%,transparent 50%);pointer-events:none}
+/* Candles logic */
+.candle{position:absolute;top:-8px;display:flex;flex-direction:column;align-items:center}
+.candle.l{left:20px}.candle.r{right:20px}
+.flame{width:12px;height:22px;background:radial-gradient(ellipse at 50% 85%,#fff 0%,#ffe060 25%,#ff7500 60%,transparent 100%);border-radius:50% 50% 30% 30%;animation:fl 0.6s ease-in-out infinite alternate;position:relative;box-shadow:0 -5px 15px rgba(255,100,0,0.5)}
+.flame::after{content:'';position:absolute;top:4px;left:2px;width:8px;height:12px;background:radial-gradient(ellipse at 50% 80%,rgba(255,255,255,0.9),rgba(200,80,0,0.4));border-radius:50%;filter:blur(0.5px)}
+.fglow{position:absolute;top:-25px;width:70px;height:70px;background:radial-gradient(circle,rgba(255,120,0,0.25),transparent 70%);border-radius:50%;animation:fl 0.6s ease-in-out infinite alternate;mix-blend-mode:screen}
+@keyframes fl{0%{transform:scaleX(0.95) scaleY(1.05) rotate(-2deg);opacity:0.85}100%{transform:scaleX(1.05) scaleY(0.95) rotate(2deg);opacity:1}}
+.cstick{width:10px;height:45px;background:linear-gradient(90deg,#b08540,#503005,#b08540);border-radius:2px;box-shadow:2px 5px 10px rgba(0,0,0,0.5)}
+.cbase{width:24px;height:6px;background:linear-gradient(90deg,#b08540,#503005,#b08540);border-radius:4px;box-shadow:0 4px 8px rgba(0,0,0,0.6)}
+.corn{position:absolute;width:40px;height:40px;border-color:rgba(80,40,10,0.4);border-style:solid}
+.corn.tl{top:12px;left:12px;border-width:2px 0 0 2px}
+.corn.tr{top:12px;right:12px;border-width:2px 2px 0 0}
+.corn.bl{bottom:12px;left:12px;border-width:0 0 2px 2px}
+.corn.br{bottom:12px;right:12px;border-width:0 2px 2px 0}
+.seal{position:absolute;bottom:-25px;right:40px;width:70px;height:70px;background:radial-gradient(circle at 35% 30%,#e02525,var(--red),#4a0505);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:28px;box-shadow:0 8px 25px rgba(0,0,0,0.8),0 0 0 2px rgba(80,10,10,0.6),inset 0 2px 5px rgba(255,255,255,0.2);transform:rotate(-15deg);animation:si 0.8s 0.5s cubic-bezier(0.34,1.56,0.64,1) both}
+@keyframes si{from{transform:rotate(-15deg) scale(0);opacity:0}to{transform:rotate(-15deg) scale(1);opacity:1}}
+
+/* Letter text styling */
+.lhead{font-family:'Cinzel Decorative',serif;font-size:clamp(18px,4.5vw,32px);color:#1a0800;text-align:center;margin-bottom:5px;line-height:1.2;font-weight:900}
+.lmeta{font-family:'Cinzel',serif;font-size:clamp(8px,1.8vw,10px);letter-spacing:0.2em;color:#5a3010;text-align:center;margin-bottom:20px;text-transform:uppercase}
+.ldiv{text-align:center;color:rgba(100,50,15,0.5);font-size:16px;letter-spacing:10px;margin:18px 0}
+.ltxt{font-family:'IM Fell English',Georgia,serif;font-size:clamp(14px,2.2vw,17px);line-height:1.8;color:#180700}
+.ltxt p{margin-bottom:16px;text-indent:25px}
+.ltxt .sal{font-family:'Cinzel',serif;font-size:clamp(15px,2.5vw,18px);font-weight:700;text-indent:0;color:#110500;margin-bottom:18px}
+.ltxt em{font-style:italic;color:#2a0f00;font-weight:bold}
+.ltxt .sig{text-indent:0;text-align:right;margin-top:25px;font-style:italic}
+.ltxt .signame{font-family:'Pirata One',cursive;font-size:clamp(26px,5vw,34px);color:#2a0f00;display:block;margin-top:5px;font-style:normal}
+
+/* Edit area */
+.etog{font-family:'Cinzel',serif;font-size:10px;letter-spacing:0.2em;color:rgba(212,160,23,0.5);background:none;border:1px dashed rgba(212,160,23,0.3);padding:12px 20px;cursor:none;margin:25px auto 0;display:block;text-transform:uppercase;transition:all 0.3s;border-radius:3px}
+.etog:hover,.etog:active{color:var(--gold);border-color:rgba(212,160,23,0.6);background:rgba(212,160,23,0.05)}
+#earea{display:none;width:100%;max-width:730px;margin-top:15px;animation:fu 0.5s ease both}
+#earea.show{display:block}
+#eta{width:100%;min-height:180px;background:rgba(1,4,8,0.9);color:var(--parch);border:1px solid rgba(212,160,23,0.4);padding:18px;font-family:'IM Fell English',serif;font-size:15px;line-height:1.7;resize:vertical;border-radius:4px;box-shadow:inset 0 0 20px rgba(0,0,0,0.8)}
+#eta:focus{outline:none;border-color:var(--gold);box-shadow:inset 0 0 20px rgba(0,0,0,0.8), 0 0 15px rgba(212,160,23,0.2)}
+#eta::placeholder{color:rgba(201,168,76,0.4)}
+.ebtns{display:flex;gap:12px;justify-content:flex-end;margin-top:12px}
+.bg{font-family:'Cinzel',serif;font-size:11px;letter-spacing:0.1em;padding:12px 25px;border:none;cursor:none;text-transform:uppercase;transition:all 0.3s;border-radius:3px;font-weight:600}
+.bg.p{background:linear-gradient(135deg,var(--gold2),var(--gold));color:var(--deep);box-shadow:0 4px 15px rgba(212,160,23,0.4)}
+.bg.p:hover,.bg.p:active{transform:translateY(-2px);box-shadow:0 6px 25px rgba(212,160,23,0.6)}
+.bg.s{background:rgba(212,160,23,0.05);color:rgba(212,160,23,0.6);border:1px solid rgba(212,160,23,0.3)}
+.bg.s:hover,.bg.s:active{color:var(--gold);border-color:var(--gold);background:rgba(212,160,23,0.1)}
+
+/* ======== PAGE MAP ======== */
+#map-canvas{width:100%;max-width:880px;border-radius:4px;border:3px solid rgba(80,50,10,0.7);box-shadow:0 0 0 1px rgba(212,160,23,0.3),0 25px 50px rgba(0,0,0,0.95);display:block;margin:10px auto 25px;background:#000}
+.clues-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:15px;max-width:880px;width:100%;padding:0 10px}
+.clue{background:linear-gradient(135deg,rgba(5,15,25,0.95),rgba(2,6,12,0.98));border:1px solid rgba(212,160,23,0.2);border-radius:6px;padding:20px;cursor:none;transition:all 0.4s;position:relative;overflow:hidden;box-shadow:0 5px 15px rgba(0,0,0,0.5)}
+.clue::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(212,160,23,0.1),transparent);opacity:0;transition:opacity 0.3s}
+.clue:hover::before,.clue:active::before,.clue.open::before{opacity:1}
+.clue:hover,.clue:active{border-color:rgba(212,160,23,0.5);transform:translateY(-4px);box-shadow:0 15px 35px rgba(0,0,0,0.8),0 0 20px rgba(212,160,23,0.15)}
+.clue.open{border-color:var(--gold);background:linear-gradient(135deg,rgba(20,15,5,0.95),rgba(2,6,12,0.98));box-shadow:inset 0 0 20px rgba(212,160,23,0.05)}
+.cico{font-size:32px;margin-bottom:12px;display:block;filter:drop-shadow(0 0 10px rgba(212,160,23,0.5))}
+.clabel{font-family:'Cinzel',serif;font-size:10px;font-weight:bold;letter-spacing:0.2em;color:rgba(212,160,23,0.6);text-transform:uppercase;margin-bottom:8px}
+.cmsg{font-family:'IM Fell English',serif;font-size:14.5px;color:var(--parch);line-height:1.6;display:none;opacity:0;transition:opacity 0.5s}
+.clue.open .cmsg{display:block;opacity:1}
+.chint{font-size:11px;color:rgba(212,160,23,0.3);font-style:italic;margin-top:8px}
+.clue.open .chint{display:none}
+.tbox{background:linear-gradient(135deg,rgba(30,20,5,0.95),rgba(2,6,12,0.98));border:2px solid rgba(212,160,23,0.6);border-radius:8px;padding:30px;max-width:880px;width:calc(100% - 20px);margin:25px auto 0;display:none;animation:rev 0.8s cubic-bezier(0.16,1,0.3,1) both;box-shadow:0 20px 50px rgba(0,0,0,0.9),inset 0 0 30px rgba(212,160,23,0.1)}
+.tbox.show{display:block}
+@keyframes rev{from{opacity:0;transform:scale(0.9) translateY(20px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.tbox h3{font-family:'Pirata One',cursive;font-size:35px;color:var(--gold2);margin-bottom:12px;text-shadow:0 0 25px rgba(212,160,23,0.6)}
+.tbox p{font-family:'IM Fell English',serif;font-size:16px;color:var(--parch);line-height:1.7}
+
+/* ======== PAGE STORY ======== */
+.story-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px;max-width:940px;width:100%;padding:0 10px}
+.scard{position:relative;border-radius:8px;overflow:hidden;cursor:none;transition:all 0.4s;border:1px solid rgba(212,160,23,0.15);background:rgba(3,8,16,0.9);box-shadow:0 10px 30px rgba(0,0,0,0.6)}
+.scard:hover,.scard:active{border-color:rgba(212,160,23,0.5);transform:translateY(-6px);box-shadow:0 20px 45px rgba(0,0,0,0.9),0 0 30px rgba(212,160,23,0.15)}
+.scene-area{height:200px;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;background:#000;border-bottom:1px solid rgba(212,160,23,0.2)}
+.scene-area canvas{position:absolute;inset:0;width:100%;height:100%}
+.scene-overlay{position:absolute;inset:0;background:linear-gradient(to top, rgba(3,8,16,1) 0%, transparent 40%);z-index:1}
+.card-emoji{font-size:75px;z-index:2;position:relative;filter:drop-shadow(0 0 20px rgba(212,160,23,0.6));animation:fc 3.5s ease-in-out infinite}
+@keyframes fc{0%,100%{transform:translateY(0) rotate(-4deg)}50%{transform:translateY(-12px) rotate(4deg)}}
+.cbody{padding:20px;position:relative;z-index:2}
+.cch{font-family:'Cinzel',serif;font-size:9px;font-weight:bold;letter-spacing:0.25em;color:rgba(212,160,23,0.5);text-transform:uppercase;margin-bottom:6px}
+.ctitle{font-family:'Pirata One',cursive;font-size:24px;color:var(--gold2);margin-bottom:10px;line-height:1.1;text-shadow:0 2px 10px rgba(0,0,0,0.8)}
+.ctext{font-family:'IM Fell English',serif;font-size:14px;color:rgba(242,228,192,0.75);line-height:1.7}
+.scard-sp{border-color:rgba(212,160,23,0.5);box-shadow:0 0 30px rgba(212,160,23,0.15), inset 0 0 20px rgba(212,160,23,0.05)}
+
+/* ======== PAGE PARDON ======== */
+#pp .content{text-align:center;padding:0 20px 80px;max-width:700px;z-index:15;position:relative}
+.pcrown{font-size:clamp(50px,10vw,70px);display:block;margin:0 auto 10px;filter:drop-shadow(0 0 25px rgba(212,160,23,0.8));animation:fc 2.5s ease-in-out infinite}
+.ptitle{font-family:'Pirata One',cursive;font-size:clamp(40px,10vw,90px);background:linear-gradient(180deg,#ffffff,var(--gold2),var(--gold));-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 5px 15px rgba(0,0,0,0.9));margin-bottom:15px;line-height:1}
+.pquote{font-family:'IM Fell English',serif;font-style:italic;font-size:clamp(15px,3vw,19px);color:rgba(212,160,23,0.7);border-left:3px solid rgba(212,160,23,0.4);padding-left:20px;text-align:left;margin:25px auto;line-height:1.8;background:linear-gradient(90deg,rgba(212,160,23,0.05),transparent);padding-top:10px;padding-bottom:10px}
+.pmsg{font-family:'IM Fell English',serif;font-size:clamp(15px,2.5vw,18px);color:rgba(242,228,192,0.9);line-height:1.9;margin-bottom:35px;text-shadow:0 2px 5px rgba(0,0,0,0.8)}
+.bheart{font-size:clamp(70px,15vw,90px);display:block;margin:0 auto 30px;animation:hb 1.2s ease-in-out infinite;filter:drop-shadow(0 0 30px rgba(220,20,20,0.9))}
+@keyframes hb{0%,100%{transform:scale(1)}15%{transform:scale(1.25)}30%{transform:scale(1)}45%{transform:scale(1.15)}}
+.choices{display:flex;gap:15px;justify-content:center;flex-wrap:wrap;position:relative}
+.ybtn{font-family:'Cinzel Decorative',serif;font-weight:bold;font-size:clamp(13px,2.5vw,18px);color:#020a05;background:linear-gradient(135deg,#a8f0a8,#2ecc71,#1a7a3d);border:none;padding:18px 40px;cursor:none;border-radius:4px;box-shadow:0 5px 25px rgba(46,204,113,0.5),0 0 50px rgba(46,204,113,0.2);transition:all 0.3s;letter-spacing:0.05em;text-transform:uppercase}
+.ybtn:hover,.ybtn:active{transform:translateY(-4px) scale(1.03);box-shadow:0 10px 40px rgba(46,204,113,0.7),0 0 80px rgba(46,204,113,0.3)}
+.nbtn{font-family:'Cinzel',serif;font-size:clamp(11px,2vw,14px);color:rgba(212,160,23,0.4);background:rgba(212,160,23,0.05);border:1px solid rgba(212,160,23,0.2);padding:18px 30px;cursor:none;border-radius:4px;transition:all 0.4s;letter-spacing:0.1em;text-transform:uppercase;font-weight:bold}
+#pres{display:none;animation:rev 1s cubic-bezier(0.16,1,0.3,1) both}
+#pres.show{display:block}
+#pres h2{font-family:'Pirata One',cursive;font-size:clamp(32px,8vw,70px);color:var(--gold2);text-shadow:0 0 40px rgba(212,160,23,0.8), 0 5px 15px rgba(0,0,0,0.9);margin:20px 0 15px}
+#pres p{font-family:'IM Fell English',serif;font-size:clamp(15px,2.5vw,19px);color:var(--parch);line-height:1.8;max-width:550px;margin:0 auto;text-shadow:0 2px 8px rgba(0,0,0,0.8)}
+
+/* CONFETTI */
+#cfx{position:fixed;inset:0;pointer-events:none;z-index:200;display:none}
+
+/* TOAST */
+#toast{position:fixed;bottom:env(safe-area-inset-bottom, 80px);left:50%;transform:translateX(-50%) translateY(60px);background:rgba(2,6,12,0.95);border:1px solid rgba(212,160,23,0.5);color:var(--gold2);font-family:'Cinzel',serif;font-size:11px;font-weight:bold;letter-spacing:0.15em;padding:14px 25px;border-radius:30px;z-index:300;transition:transform 0.4s cubic-bezier(0.34,1.56,0.64,1),opacity 0.4s;opacity:0;white-space:nowrap;text-transform:uppercase;box-shadow:0 10px 30px rgba(0,0,0,0.8)}
+#toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+
+/* MOBILE SPECIFIC TWEAKS */
+@media(max-width:600px){
+  .scroll{padding:40px 25px 50px}
+  .candle{display:none} /* Hide candles on very small screens to save space */
+  .seal{width:55px;height:55px;font-size:22px;right:25px;bottom:-20px}
+  .choices{flex-direction:column;align-items:center;width:100%}
+  .ybtn, .nbtn{width:100%;max-width:300px}
+  .ebtn, .ybtn, .nbtn, .bg, .nb { padding-top: 14px; padding-bottom: 14px; } /* larger tap areas */
+}
+</style>
+</head>
+<body>
+
+<canvas id="scene"></canvas>
+<div id="grain"></div>
+<div id="vignette"></div>
+<div id="light"></div>
+<div id="cursor">⚓</div>
+
+<div id="trans">
+  <canvas id="twc"></canvas>
+  <div id="tship"></div>
+</div>
+
+<div class="page active" id="ph">
+  <div class="content">
+    <div class="skull-wrap">
+      <div class="skull-glow"></div>
+      <span class="skull-icon">🏴‍☠️</span>
+    </div>
+    <div class="sub1">— Un message gravé dans les étoiles —</div>
+    <div class="mtitle">Pour<br>Syrine</div>
+    <div class="divg"><span>⚓</span></div>
+    <div class="fname">✦ Le Voyage du Pardon ✦</div>
+    <button class="ebtn" onclick="goTo('letter')">Embarquer ⛵</button>
+  </div>
+</div>
+
+<div class="page" id="pl">
+  <div class="page-scroll">
+    <div style="max-width:730px;width:100%;padding:0 15px">
+      <div class="cinematic-title">📜 La Lettre du Capitaine</div>
+      <div class="cinematic-sub">Scellée à la cire rouge — livrée par les vents</div>
+      <div class="scroll">
+        <div class="corn tl"></div><div class="corn tr"></div>
+        <div class="corn bl"></div><div class="corn br"></div>
+        <div class="candle l">
+          <div class="fglow"></div>
+          <div class="flame"></div>
+          <div class="cstick"></div><div class="cbase"></div>
+        </div>
+        <div class="candle r" style="animation-delay:-0.4s">
+          <div class="fglow" style="animation-delay:-0.4s"></div>
+          <div class="flame" style="animation-delay:-0.4s"></div>
+          <div class="cstick"></div><div class="cbase"></div>
+        </div>
+        <div class="seal">🏴‍☠️</div>
+        <div class="lhead">Ma chère Syrine</div>
+        <div class="lmeta">⚓ Lettre de bord — Mer des Caraïbes, nuit sans lune ⚓</div>
+        <div class="ldiv">✦ ✦ ✦</div>
+        <div class="ltxt" id="ldisplay">
+          <p class="sal">À toi, Syrine,</p>
+          <p>J’ai lu attentivement chacun de tes messages, jusqu’au dernier. Tu m’as demandé de te répondre avant la fin de tes révisions, et je le fais, non pas pour chercher des excuses ou essayer de te retenir de force, mais parce que tu mérites de l'honnêteté et des vraies réponses.</p>
+          <p>Je tiens d’abord à te demander pardon, sincèrement et profondément. En lisant tout ce que tu as écrit, je comprends ce que tu ressens et la pression énorme que tu portes sur tes épaules avec tes études de médecine et tous les traumatismes que tu as traversés ces derniers temps. Le pire dans tout ça, c’est de réaliser que moi, qui étais censé être ton copain et ton soutien, je n’ai fait que rajouter un poids insupportable à ta vie.</p>
+          <p>Tu as totalement raison sur mes comportements. Je n’ai pas su me mettre à ta place. Tu m’as dit vingt fois que tu avais besoin d’être seule pour réviser et te concentrer, et je n’ai pas respecté tes limites. J'ai forcé, j'ai été égoïste, et je t'ai pourri tes soirées de révisions alors que ton année est en jeu et c’est la dernière.</p>
+          <p>Je m'en veux aussi énormément pour mes crises de jalousie toxiques, notamment pour tes 20 ans. Mon comportement concernant tes vêtements était injuste, rabaissant, et totalement hypocrite.</p>
+          <p>Je suis aussi profondément honteux pour ton poignet. Le fait que tu aies encore mal quand tu tapes tes flashcards me dégoûte de moi-même. Jamais je n'aurais dû en arriver à un comportement qui te blesse physiquement ou te fasse peur. Je n'ai aucune excuse pour ça, ni pour le fait d'avoir caché mon téléphone, d'avoir fui ou de t'avoir hurlé dessus quand j'étais en tort.</p>
+          <p>Je réalise aujourd'hui à quel point mon attitude t'a blessée, t'a épuisée et a rendu cette relation toxique pour toi. Les déjeuners et les cadeaux ne réparent pas le manque de respect et d'écoute. Je suis désolé.</p>
+          <p class="sig">Du fond des mers, avec tout mon cœur,<span class="signame">Ton Capitaine ❤️</span></p>
+        </div>
+        <div class="ldiv">✦ ✦ ✦</div>
+      </div>
+      <button class="etog" onclick="toggleEdit()">✒ Écrire ma propre lettre</button>
+      <div id="earea">
+        <textarea id="eta" placeholder="Écris ici ta lettre pour Syrine..."></textarea>
+        <div class="ebtns">
+          <button class="bg s" onclick="resetL()">Effacer</button>
+          <button class="bg p" onclick="saveL()">⚓ Sceller</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="page" id="pm">
+  <div class="page-scroll">
+    <div style="max-width:880px;width:100%;padding:0 10px">
+      <div class="cinematic-title">🗺️ Carte au Trésor</div>
+      <div class="cinematic-sub">Six indices dissimulés — révèle-les tous</div>
+      <canvas id="map-canvas"></canvas>
+      <div class="clues-grid">
+        <div class="clue" onclick="openClue(this,0)">
+          <span class="cico">⚓</span>
+          <div class="clabel">Indice I — L'Ancre</div>
+          <div class="cmsg">Comme une ancre, tu es ce qui me retient au monde réel et m'empêche de dériver sans but dans l'immensité de l'existence.</div>
+          <div class="chint">Cliquer pour révéler...</div>
+        </div>
+        <div class="clue" onclick="openClue(this,1)">
+          <span class="cico">🌊</span>
+          <div class="clabel">Indice II — La Vague</div>
+          <div class="cmsg">Même les vagues les plus furieuses s'apaisent au rivage. Ma colère s'est dissipée — ne reste que le regret sincère et l'amour intact.</div>
+          <div class="chint">Cliquer pour révéler...</div>
+        </div>
+        <div class="clue" onclick="openClue(this,2)">
+          <span class="cico">⭐</span>
+          <div class="clabel">Indice III — L'Étoile</div>
+          <div class="cmsg">Les marins naviguaient par les étoiles depuis des millénaires. Tu es mon étoile polaire — sans toi, je perds complètement le nord.</div>
+          <div class="chint">Cliquer pour révéler...</div>
+        </div>
+        <div class="clue" onclick="openClue(this,3)">
+          <span class="cico">🗝️</span>
+          <div class="clabel">Indice IV — La Clé</div>
+          <div class="cmsg">Le vrai trésor n'est pas dans un coffre. C'est ton sourire, ton rire, ta présence. Tu as la clé de mon cœur — et tu le sauras toujours.</div>
+          <div class="chint">Cliquer pour révéler...</div>
+        </div>
+        <div class="clue" onclick="openClue(this,4)">
+          <span class="cico">🏴‍☠️</span>
+          <div class="clabel">Indice V — Le Pavillon</div>
+          <div class="cmsg">Je baisse le drapeau noir pour toi. La seule bataille qui vaille est celle pour reconquérir ta confiance et mériter ton pardon.</div>
+          <div class="chint">Cliquer pour révéler...</div>
+        </div>
+        <div class="clue" onclick="openClue(this,5)">
+          <span class="cico">💎</span>
+          <div class="clabel">Indice VI — Le Trésor</div>
+          <div class="cmsg">X marque l'endroit... et cet endroit, c'est là où tu te trouves. Tu es le trésor au bout de toutes mes aventures. Toujours.</div>
+          <div class="chint">Cliquer pour révéler...</div>
+        </div>
+      </div>
+      <div class="tbox" id="tb">
+        <h3>🎉 Trésor Découvert !</h3>
+        <p>Tu as tout trouvé, Syrine. La dernière escale t'attend — la plus importante de toutes les mers...</p>
+        <button class="bg p" style="margin-top:20px; width: 100%; max-width: 300px" onclick="goTo('pardon')">→ La Dernière Escale</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="page" id="pst">
+  <div class="page-scroll">
+    <div style="max-width:940px;width:100%;padding:0 10px">
+      <div class="cinematic-title">⚔️ Notre Histoire</div>
+      <div class="cinematic-sub">Les chroniques d'une aventure à deux</div>
+      <div class="story-grid">
+        <div class="scard"><div class="scene-area"><canvas class="scc" data-s="dawn"></canvas><div class="scene-overlay"></div><span class="card-emoji">🌅</span></div><div class="cbody"><div class="cch">Chapitre I</div><div class="ctitle">La Première Rencontre</div><div class="ctext">Deux navires se croisant dans la nuit. Notre rencontre n'était pas un hasard — c'était la destinée des mers qui nous a réunis.</div></div></div>
+        <div class="scard"><div class="scene-area"><canvas class="scc" data-s="sail"></canvas><div class="scene-overlay"></div><span class="card-emoji" style="animation-delay:-1.5s">⛵</span></div><div class="cbody"><div class="cch">Chapitre II</div><div class="ctitle">Naviguer Ensemble</div><div class="ctext">Chaque moment avec toi est une nouvelle aventure. Même les tempêtes semblent moins terribles quand tu es à mes côtés.</div></div></div>
+        <div class="scard"><div class="scene-area"><canvas class="scc" data-s="storm"></canvas><div class="scene-overlay"></div><span class="card-emoji" style="animation-delay:-0.8s">⛈️</span></div><div class="cbody"><div class="cch">Chapitre III</div><div class="ctitle">La Tempête</div><div class="ctext">Toute grande histoire a ses épreuves. Nous avons traversé des eaux agitées — cela ne fait que prouver la solidité de notre navire.</div></div></div>
+        <div class="scard"><div class="scene-area"><canvas class="scc" data-s="stars"></canvas><div class="scene-overlay"></div><span class="card-emoji" style="animation-delay:-2s">🌠</span></div><div class="cbody"><div class="cch">Chapitre IV</div><div class="ctitle">Les Étoiles</div><div class="ctext">Dans les nuits calmes, je regarde le ciel et je pense à toi. Chaque étoile porte ton prénom gravé en or pur.</div></div></div>
+        <div class="scard"><div class="scene-area"><canvas class="scc" data-s="island"></canvas><div class="scene-overlay"></div><span class="card-emoji" style="animation-delay:-0.5s">🏝️</span></div><div class="cbody"><div class="cch">Chapitre V</div><div class="ctitle">L'Île Paradisiaque</div><div class="ctext">Si je devais trouver l'île parfaite, je ne voudrais y être que si tu es là. Tu es mon paradis, Syrine.</div></div></div>
+        <div class="scard scard-sp"><div class="scene-area"><canvas class="scc" data-s="future"></canvas><div class="scene-overlay"></div><span class="card-emoji" style="animation-delay:-1s">❤️</span></div><div class="cbody"><div class="cch" style="color:rgba(212,160,23,0.7)">À Écrire...</div><div class="ctitle" style="color:var(--gold2)">Le Prochain Chapitre</div><div class="ctext" style="color:rgba(242,228,192,0.9)">Ce chapitre dépend de toi — et de ton pardon. Tourne la page avec moi, Syrine. 💛</div></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="page" id="pp">
+  <div class="page-scroll" style="justify-content: center; padding-top: 0;">
+    <div class="content">
+      <span class="pcrown">👑</span>
+      <div class="ptitle">Le Grand Jugement</div>
+      <span class="bheart">❤️</span>
+      <div class="pquote">"Un capitaine sans son équipage n'est rien.<br>Et moi sans toi — je ne suis rien du tout."</div>
+      <div id="pmain">
+        <div class="pmsg">Syrine, j'ai navigué à travers toutes ces pages<br>pour arriver ici, devant toi, le cœur à découvert.<br><br><strong style="font-family:'Cinzel',serif;color:var(--gold2);font-size:1.2em;display:block;margin-top:10px;">Je suis désolé. Vraiment. Du fond des mers.</strong></div>
+        <div class="choices">
+          <button class="ybtn" onclick="pardoned()">✅ Je te pardonne !</button>
+          <button class="nbtn" id="nbtn" onclick="runAway()">❌ Pas encore...</button>
+        </div>
+      </div>
+      <div id="pres">
+        <h2>🎉 Pardon Accordé !</h2>
+        <span style="font-size:clamp(60px,12vw,80px);display:block;margin:20px auto;animation:hb 1.2s infinite;filter:drop-shadow(0 0 20px rgba(255,200,50,0.5))">🥹</span>
+        <p>Syrine, tu es la plus grande des capitaines — celle qui sait pardonner, celle qui est forte, lumineuse, magnifique.<br><br>Je promets de naviguer mieux à tes côtés. Pour toujours, au-delà des 7 mers et plus encore. ❤️🏴‍☠️</p>
+        <div style="margin-top:30px;font-size:clamp(40px,8vw,55px);display:flex;gap:20px;justify-content:center">
+          <span>⛵</span><span style="animation:fc 2.5s ease-in-out infinite;display:inline-block;filter:drop-shadow(0 0 15px var(--gold2))">💛</span><span>⛵</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<nav id="nav">
+  <button class="nb on" onclick="goTo('home')">⚓ Accueil</button>
+  <button class="nb" onclick="goTo('letter')">📜 Lettre</button>
+  <button class="nb" onclick="goTo('map')">🗺️ Trésor</button>
+  <button class="nb" onclick="goTo('story')">⚔️ Histoire</button>
+  <button class="nb" onclick="goTo('pardon')">❤️ Pardon</button>
+</nav>
+
+<div id="cfx"></div>
+<div id="toast"></div>
+
+<script>
+// ======= CURSOR =======
+const cur = document.getElementById('cursor');
+let isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+if (!isTouch) {
+  document.addEventListener('mousemove', e => {
+    cur.style.left = e.clientX + 'px';
+    cur.style.top = e.clientY + 'px';
+  });
+}
+
+// ======= MAIN CINEMATIC OCEAN =======
+const sc = document.getElementById('scene');
+const ctx = sc.getContext('2d');
+let W, H, T = 0;
+const resize = () => { W = sc.width = window.innerWidth; H = sc.height = window.innerHeight; };
+resize(); window.addEventListener('resize', resize);
+
+// Background elements
+const STARS = Array.from({length:150}, () => ({
+  x: Math.random(), y: Math.random() * 0.55,
+  r: Math.random() * 1.5 + 0.3, ph: Math.random() * Math.PI * 2,
+  speed: Math.random() * 0.02 + 0.005
+}));
+
+const FOAM = Array.from({length:60}, () => ({
+  x: Math.random(), ry: Math.random() * 0.08,
+  r: Math.random() * 1.5 + 0.5, ph: Math.random() * Math.PI * 2,
+  vx: (Math.random() * 0.5 + 0.2) / 1000
+}));
+
+// Cinematic Sparks/Embers
+const SPARKS = Array.from({length: 35}, () => ({
+  x: Math.random(), y: Math.random(),
+  size: Math.random() * 2 + 0.5,
+  vx: (Math.random() - 0.5) * 0.002,
+  vy: Math.random() * -0.003 - 0.001,
+  life: Math.random() * Math.PI * 2
+}));
+
+let shipX = 0.25, shipTargetX = 0.25;
+
+function frame() {
+  ctx.clearRect(0, 0, W, H);
+  T += 0.008;
+
+  // — SKY —
+  const sky = ctx.createLinearGradient(0, 0, 0, H * 0.62);
+  sky.addColorStop(0, '#000205');
+  sky.addColorStop(0.3, '#010610');
+  sky.addColorStop(0.6, '#010c18');
+  sky.addColorStop(1, '#021222');
+  ctx.fillStyle = sky; ctx.fillRect(0, 0, W, H);
+
+  // — MOON CORONA —
+  const mx = W * 0.75, my = H * 0.2;
+  const corona = ctx.createRadialGradient(mx, my, 0, mx, my, Math.min(W,H) * 0.4);
+  corona.addColorStop(0, 'rgba(212,160,23,0.15)');
+  corona.addColorStop(0.4, 'rgba(212,160,23,0.05)');
+  corona.addColorStop(1, 'transparent');
+  ctx.fillStyle = corona; ctx.fillRect(0, 0, W, H);
+
+  // — MOON —
+  ctx.save();
+  const mr = Math.min(W,H) * 0.08;
+  ctx.beginPath();
+  ctx.arc(mx, my, mr, 0, Math.PI * 2);
+  const mg = ctx.createRadialGradient(mx - mr*0.2, my - mr*0.2, 0, mx, my, mr);
+  mg.addColorStop(0, '#fffdf0'); mg.addColorStop(0.7, '#f5d050'); mg.addColorStop(1, '#a07005');
+  ctx.fillStyle = mg;
+  ctx.shadowBlur = 60; ctx.shadowColor = 'rgba(245,204,90,0.4)';
+  ctx.fill(); ctx.restore();
+
+  // — STARS —
+  STARS.forEach(s => {
+    s.ph += s.speed;
+    const a = 0.2 + Math.sin(s.ph) * 0.6;
+    ctx.save(); ctx.globalAlpha = Math.max(0, a);
+    ctx.fillStyle = '#fffde0';
+    ctx.shadowBlur = 4; ctx.shadowColor = '#ffe060';
+    ctx.beginPath(); ctx.arc(s.x * W, s.y * H, s.r, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+  });
+
+  // — DISTANT ISLAND SILHOUETTE —
+  ctx.save(); ctx.globalAlpha = 0.35;
+  const isl = ctx.createLinearGradient(0, H * 0.45, 0, H * 0.62);
+  isl.addColorStop(0, '#02060a'); isl.addColorStop(1, 'transparent');
+  ctx.fillStyle = isl;
+  ctx.beginPath(); ctx.moveTo(0, H * 0.62);
+  for (let x = 0; x <= W; x += 20) {
+    const vy = H * 0.55 + Math.sin(x * 0.003) * H * 0.06 + Math.sin(x * 0.01 + 1.2) * H * 0.03;
+    ctx.lineTo(x, vy);
+  }
+  ctx.lineTo(W, H * 0.62); ctx.closePath(); ctx.fill(); ctx.restore();
+
+  // — OCEAN LAYERS —
+  const seaY = H * 0.58;
+  for (let L = 5; L >= 0; L--) {
+    const y0 = seaY + L * (H - seaY) / 6;
+    const amp = 12 + L * 8;
+    const spd = T * (0.4 + L * 0.2);
+    const freq = 0.006 - L * 0.0004;
+
+    ctx.beginPath(); ctx.moveTo(0, y0);
+    for (let x = 0; x <= W + 5; x += 5) {
+      const wy = y0 + Math.sin(x * freq + spd) * amp + Math.cos(x * freq * 0.5 + spd * 0.8) * amp * 0.4 + Math.sin(x * freq * 1.5 + spd * 1.2) * amp * 0.2;
+      ctx.lineTo(x, wy);
+    }
+    ctx.lineTo(W, H); ctx.lineTo(0, H); ctx.closePath();
+
+    const oceanG = ctx.createLinearGradient(0, y0, 0, H);
+    const r = 1 + L * 2, g2 = 4 + L * 4, b = 10 + L * 8;
+    oceanG.addColorStop(0, `rgba(${r},${g2},${b},0.95)`);
+    oceanG.addColorStop(1, 'rgba(0,1,3,1)');
+    ctx.fillStyle = oceanG; ctx.fill();
+
+    if (L < 4) {
+      ctx.beginPath(); ctx.moveTo(0, y0);
+      for (let x = 0; x <= W + 5; x += 5) {
+        const wy = y0 + Math.sin(x * freq + spd) * amp + Math.cos(x * freq * 0.5 + spd * 0.8) * amp * 0.4;
+        ctx.lineTo(x, wy);
+      }
+      ctx.strokeStyle = `rgba(120,180,210,${0.04 + L * 0.015})`;
+      ctx.lineWidth = 1.5; ctx.stroke();
+    }
+  }
+
+  // — FOAM PARTICLES —
+  FOAM.forEach(p => {
+    p.x += p.vx; if (p.x > 1) p.x = 0; p.ph += 0.03;
+    const wy = seaY + 20 + Math.sin(p.x * W * 0.006 + T * 1.2) * 15;
+    ctx.save(); ctx.globalAlpha = 0.15 + Math.sin(p.ph) * 0.1;
+    ctx.fillStyle = '#a0c8d8';
+    ctx.beginPath(); ctx.arc(p.x * W, wy, p.r * 1.8, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+  });
+
+  // — MOON REFLECTION —
+  ctx.save(); ctx.globalAlpha = 0.12;
+  for (let y = seaY; y < H; y += 4) {
+    const prog = (y - seaY) / (H - seaY);
+    const wid = 15 + prog * 120 + Math.sin(y * 0.1 + T * 3) * 12;
+    const rx = mx + Math.sin(y * 0.05 + T * 1.5) * 25;
+    ctx.fillStyle = `rgba(255,230,120,${0.6 * (1 - prog * 0.6)})`;
+    ctx.fillRect(rx - wid / 2, y, wid, 3);
+  }
+  ctx.restore();
+
+  // — CINEMATIC SPARKS (Embers) —
+  ctx.save();
+  SPARKS.forEach(sp => {
+    sp.x += sp.vx;
+    sp.y += sp.vy;
+    sp.life += 0.05;
+    if (sp.y < 0 || sp.x < 0 || sp.x > 1) {
+      sp.y = 1; sp.x = Math.random();
+    }
+    const alpha = (0.5 + Math.sin(sp.life)*0.5) * 0.8;
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = '#ff7500';
+    ctx.shadowBlur = 8; ctx.shadowColor = '#ff2a00';
+    ctx.beginPath(); ctx.arc(sp.x * W, sp.y * H, sp.size, 0, Math.PI*2); ctx.fill();
+  });
+  ctx.restore();
+
+  // — SHIP —
+  shipX += (shipTargetX - shipX) * 0.005;
+  const sx = shipX * W;
+  const sy = seaY + Math.sin(T * 0.9) * 10 - 45;
+  const sroll = Math.sin(T * 0.6) * 6;
+  
+  // Scale ship slightly based on screen size
+  const shipScale = Math.min(1, W / 600);
+  ctx.save();
+  ctx.translate(sx, sy); 
+  ctx.scale(shipScale, shipScale);
+  ctx.rotate(sroll * Math.PI / 180);
+  drawShipInner();
+  ctx.restore();
+
+  // Random lightning
+  if (Math.random() < 0.002) lightning();
+
+  requestAnimationFrame(frame);
+}
+
+function drawShipInner() {
+  // Hull shadow
+  ctx.save(); ctx.globalAlpha = 0.4;
+  ctx.fillStyle = 'rgba(0,0,0,0.8)';
+  ctx.beginPath(); ctx.ellipse(0, 36, 62, 10, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.restore();
+
+  // Hull main
+  ctx.fillStyle = '#0a0300';
+  ctx.beginPath();
+  ctx.moveTo(-62, 8); ctx.quadraticCurveTo(-66, 24, -48, 32);
+  ctx.lineTo(48, 32); ctx.quadraticCurveTo(66, 24, 62, 8);
+  ctx.lineTo(45, -8); ctx.lineTo(-45, -8); ctx.closePath(); ctx.fill();
+
+  // Gold trim line
+  ctx.strokeStyle = 'rgba(212,160,23,0.6)'; ctx.lineWidth = 2.5;
+  ctx.beginPath(); ctx.moveTo(-60, 9); ctx.lineTo(60, 9); ctx.stroke();
+
+  // Mast
+  ctx.strokeStyle = '#0f0500'; ctx.lineWidth = 4.5;
+  ctx.beginPath(); ctx.moveTo(2, -8); ctx.lineTo(2, -115); ctx.stroke();
+
+  // Cross yard
+  ctx.lineWidth = 3.5;
+  ctx.beginPath(); ctx.moveTo(-45, -78); ctx.lineTo(50, -78); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(-28, -62); ctx.lineTo(32, -62); ctx.stroke();
+
+  // Main sail — billowing
+  const puff = Math.sin(T * 0.8) * 6;
+  ctx.fillStyle = 'rgba(230,220,180,0.85)';
+  ctx.beginPath();
+  ctx.moveTo(-45, -78);
+  ctx.quadraticCurveTo(puff - 10, -65, 2, -8);
+  ctx.lineTo(2, -8);
+  ctx.lineTo(50, -78); ctx.closePath(); ctx.fill();
+  ctx.strokeStyle = 'rgba(80,50,10,0.3)'; ctx.lineWidth = 0.8; ctx.stroke();
+
+  // Top sail
+  ctx.fillStyle = 'rgba(220,210,170,0.7)';
+  ctx.beginPath();
+  ctx.moveTo(-28, -62);
+  ctx.quadraticCurveTo(puff - 3, -55, 2, -78);
+  ctx.lineTo(32, -62); ctx.closePath(); ctx.fill();
+
+  // Jolly Roger flag
+  ctx.fillStyle = 'rgba(5,5,5,0.95)';
+  ctx.beginPath(); ctx.moveTo(2, -115); ctx.lineTo(26 + Math.sin(T*1.5) * 8, -110); ctx.lineTo(2, -100); ctx.closePath(); ctx.fill();
+  
+  // Flag detail (skull hint)
+  ctx.fillStyle = 'rgba(255,255,255,0.6)';
+  ctx.beginPath(); ctx.arc(8, -108, 1.5, 0, Math.PI*2); ctx.fill();
+
+  // Rigging
+  ctx.strokeStyle = 'rgba(50,30,10,0.5)'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(56, -2); ctx.lineTo(2, -115); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(-56, -2); ctx.lineTo(2, -115); ctx.stroke();
+}
+
+frame();
+
+function lightning() {
+  const el = document.getElementById('light');
+  el.style.background = 'rgba(180,200,255,0.18)';
+  setTimeout(() => el.style.background = 'transparent', 60);
+  setTimeout(() => el.style.background = 'rgba(180,200,255,0.08)', 110);
+  setTimeout(() => el.style.background = 'transparent', 200);
+}
+
+// ======= NAVIGATION WITH SHIP TRANSITION =======
+let curPage = 'home', transitioning = false;
+const pageMap = { home:'ph', letter:'pl', map:'pm', story:'pst', pardon:'pp' };
+const navPages = ['home','letter','map','story','pardon'];
+
+function goTo(id) {
+  if (transitioning || id === curPage) return;
+  transitioning = true;
+
+  const twc = document.getElementById('twc');
+  const tship = document.getElementById('tship');
+  twc.width = window.innerWidth; twc.height = window.innerHeight;
+  const tc = twc.getContext('2d');
+  twc.style.transition = 'opacity 0.2s'; twc.style.opacity = '1';
+
+  tship.style.fontSize = Math.min(80, window.innerWidth * 0.15) + 'px';
+  tship.textContent = '⛵';
+  tship.style.bottom = '40%';
+  tship.style.left = '-200px';
+  tship.style.transition = 'none';
+
+  let p = 0, animId, done = false;
+  const go = () => {
+    p = Math.min(p + 0.025, 1); // slightly faster transition
+    const W2 = twc.width, H2 = twc.height;
+    tc.clearRect(0, 0, W2, H2);
+
+    const ease = p < 0.5 ? 2*p*p : -1+(4-2*p)*p;
+    const waveTop = H2 * (1 - ease);
+    const wg = tc.createLinearGradient(0, waveTop, 0, H2);
+    wg.addColorStop(0, '#011020'); wg.addColorStop(0.5, '#010812'); wg.addColorStop(1, '#000205');
+    tc.fillStyle = wg;
+    tc.beginPath(); tc.moveTo(0, H2);
+    for (let x = 0; x <= W2; x += 10) {
+      const wy = waveTop + Math.sin(x * 0.01 + p * 15) * 30 + Math.cos(x * 0.005 + p * 8) * 15;
+      tc.lineTo(x, wy);
+    }
+    tc.lineTo(W2, H2); tc.closePath(); tc.fill();
+
+    const shipPx = -200 + p * (W2 + 400);
+    tship.style.left = shipPx + 'px';
+    const wobble = Math.sin(p * 20) * 10;
+    tship.style.transform = `translateY(${wobble}px) rotate(${wobble * 0.5}deg)`;
+
+    if (p < 1) {
+      animId = requestAnimationFrame(go);
+    } else if (!done) {
+      done = true;
+      document.getElementById(pageMap[curPage]).classList.remove('active');
+      document.getElementById(pageMap[id]).classList.add('active');
+      curPage = id;
+      document.querySelectorAll('.nb').forEach((b, i) => b.classList.toggle('on', navPages[i] === id));
+
+      let p2 = 1;
+      const reveal = () => {
+        p2 = Math.max(p2 - 0.03, 0);
+        const W2 = twc.width, H2 = twc.height;
+        tc.clearRect(0, 0, W2, H2);
+        const ease2 = p2 < 0.5 ? 2*p2*p2 : -1+(4-2*p2)*p2;
+        const wt = H2 * (1 - ease2);
+        const wg2 = tc.createLinearGradient(0, wt, 0, H2);
+        wg2.addColorStop(0, '#011020'); wg2.addColorStop(0.5, '#010812'); wg2.addColorStop(1, '#000205');
+        tc.fillStyle = wg2;
+        tc.beginPath(); tc.moveTo(0, H2);
+        for (let x = 0; x <= W2; x += 10) {
+          const wy = wt + Math.sin(x * 0.01 + p2 * 10) * 25 + Math.cos(x * 0.005 + p2 * 6) * 12;
+          tc.lineTo(x, wy);
+        }
+        tc.lineTo(W2, H2); tc.closePath(); tc.fill();
+        if (p2 > 0) { requestAnimationFrame(reveal); }
+        else {
+          twc.style.opacity = '0';
+          tship.style.fontSize = '0';
+          setTimeout(() => { tc.clearRect(0,0,twc.width,twc.height); transitioning = false; }, 250);
+        }
+      };
+      requestAnimationFrame(reveal);
+    }
+  };
+  requestAnimationFrame(go);
+}
+
+// ======= TREASURE MAP =======
+function drawMap() {
+  const c = document.getElementById('map-canvas');
+  if (!c || !c.offsetWidth) return;
+  c.width = c.offsetWidth;
+  // Make height slightly taller on mobile for better aspect ratio
+  c.height = Math.round(c.offsetWidth * (window.innerWidth < 600 ? 0.6 : 0.45));
+  const cx = c.getContext('2d'), W2 = c.width, H2 = c.height;
+
+  // Rich parchment base
+  const pg = cx.createLinearGradient(0, 0, W2, H2);
+  pg.addColorStop(0, '#e3ca78'); pg.addColorStop(0.4, '#cda440'); pg.addColorStop(0.8, '#a87e22'); pg.addColorStop(1, '#7a5210');
+  cx.fillStyle = pg; cx.fillRect(0, 0, W2, H2);
+
+  // Texture dots & scratches
+  for (let i = 0; i < 800; i++) {
+    cx.fillStyle = `rgba(${Math.random()>0.4?'60,25,0':'240,190,60'},${Math.random()*0.06})`;
+    cx.fillRect(Math.random()*W2, Math.random()*H2, Math.random()*4+1, Math.random()*3+1);
+  }
+
+  // Deep burn edges
+  const eg = cx.createRadialGradient(W2/2,H2/2,Math.min(W2,H2)*0.15,W2/2,H2/2,Math.min(W2,H2)*0.8);
+  eg.addColorStop(0, 'transparent'); eg.addColorStop(1, 'rgba(10,2,0,0.85)');
+  cx.fillStyle = eg; cx.fillRect(0, 0, W2, H2);
+
+  // Islands
+  const islands = [[W2*.15,H2*.35,Math.max(40,W2*.06),Math.max(25,H2*.08),-0.1,'#381c05'],[W2*.55,H2*.25,Math.max(60,W2*.08),Math.max(30,H2*.1),0.05,'#2c1402'],[W2*.8,H2*.7,Math.max(35,W2*.05),Math.max(20,H2*.06),0.2,'#1e0a00']];
+  islands.forEach(([ix,iy,rx,ry,rot,col])=>{
+    cx.save(); cx.translate(ix,iy); cx.rotate(rot);
+    cx.fillStyle=col; cx.beginPath(); cx.ellipse(0,0,rx,ry,0,0,Math.PI*2); cx.fill();
+    cx.lineWidth=2; cx.strokeStyle='rgba(0,0,0,0.3)'; cx.stroke();
+    cx.restore();
+  });
+
+  // Dotted path
+  cx.setLineDash([6,10]); cx.strokeStyle='rgba(30,5,0,0.7)'; cx.lineWidth=2.5;
+  cx.beginPath(); cx.moveTo(W2*.05,H2*.85);
+  cx.bezierCurveTo(W2*.2,H2*.5,W2*.4,H2*.75,W2*.5,H2*.5);
+  cx.bezierCurveTo(W2*.6,H2*.25,W2*.7,H2*.55,W2*.84,H2*.35);
+  cx.stroke(); cx.setLineDash([]);
+
+  // Bold X mark
+  const xc=W2*.84, yc=H2*.35;
+  cx.strokeStyle='rgba(150,15,15,0.95)'; cx.lineWidth=4; cx.lineCap='round';
+  cx.beginPath(); cx.moveTo(xc-15,yc-15); cx.lineTo(xc+15,yc+15); cx.stroke();
+  cx.beginPath(); cx.moveTo(xc+15,yc-15); cx.lineTo(xc-15,yc+15); cx.stroke();
+
+  // Labels
+  cx.font=`bold ${Math.max(12,W2*.018)}px 'IM Fell English',Georgia,serif`;
+  cx.fillStyle='rgba(15,5,0,0.85)'; cx.textAlign='left';
+  cx.fillText('Île de la Réconciliation',W2*.04,H2*.15);
+  cx.font=`italic ${Math.max(11,W2*.016)}px Georgia`;
+  cx.fillStyle='rgba(15,5,0,0.6)'; cx.fillText('Mer du Pardon',W2*.35,H2*.9);
+  cx.font=`bold ${Math.max(12,W2*.018)}px Georgia`;
+  cx.fillStyle='rgba(140,10,10,0.9)'; cx.fillText('Le Trésor',xc-26,yc-22);
+
+  // Compass rose
+  const crx=W2*.1, cry=H2*.75, s=Math.max(30, H2*.12);
+  cx.save(); cx.translate(crx,cry);
+  for(let a=0;a<8;a++){
+    cx.save(); cx.rotate(a*Math.PI/4);
+    cx.fillStyle=a===0?'rgba(140,15,15,0.9)':'rgba(20,5,0,0.7)';
+    cx.beginPath(); cx.moveTo(0,-s); cx.lineTo(s*.25,0); cx.lineTo(0,s*.2); cx.lineTo(-s*.25,0); cx.closePath(); cx.fill();
+    cx.restore();
+  }
+  cx.font=`bold ${s*.5}px Georgia`; cx.fillStyle='rgba(15,5,0,0.9)'; cx.textAlign='center';
+  cx.fillText('N',0,-s*1.25); cx.fillText('S',0,s*1.4); cx.restore();
+}
+
+// ======= CLUES =======
+let opened = 0;
+function openClue(el, i) {
+  if (el.classList.contains('open')) return;
+  el.classList.add('open'); opened++;
+  showToast(`💰 Indice ${opened}/6 révélé !`);
+  if (opened === 6) setTimeout(()=>{
+    document.getElementById('tb').classList.add('show');
+    document.getElementById('tb').scrollIntoView({behavior:'smooth', block:'end'});
+  }, 600);
+}
+
+// ======= LETTER =======
+function toggleEdit() { 
+  const ea = document.getElementById('earea');
+  ea.classList.toggle('show'); 
+  if(ea.classList.contains('show')) ea.scrollIntoView({behavior:'smooth'});
+}
+function saveL() {
+  const v = document.getElementById('eta').value.trim();
+  if (!v) return;
+  const el = document.getElementById('ldisplay');
+  el.innerHTML = '<p class="sal">À toi, Syrine,</p>' +
+    v.split('\n').filter(p=>p.trim()).map(p=>`<p>${p}</p>`).join('') +
+    '<p class="sig">Avec tout mon amour,<span class="signame">Ton Capitaine ❤️</span></p>';
+  document.getElementById('earea').classList.remove('show');
+  showToast('📜 Lettre scellée !');
+}
+function resetL() { document.getElementById('eta').value = ''; }
+
+// ======= PARDON =======
+let noC = 0;
+function runAway() {
+  noC++;
+  const b = document.getElementById('nbtn');
+  const msgs = ['Allez... 🥺','Je t\'en supplie !','Siouplait...','Vraiment désolé','Les pirates pleurent !','🥹 Pitié...'];
+  b.textContent = msgs[Math.min(noC-1, msgs.length-1)];
+  
+  // Only make it run away on desktop, on mobile it's too frustrating
+  if(!isTouch && window.innerWidth > 600) {
+    b.style.position = 'fixed'; b.style.zIndex = '150';
+    b.style.left = Math.random() * (window.innerWidth - 150) + 'px';
+    b.style.top = (100 + Math.random() * (window.innerHeight - 200)) + 'px';
+  } else {
+    // On mobile, just make it visually shrink/shake
+    b.style.transform = `scale(${Math.max(0.6, 1 - noC*0.1)})`;
+  }
+}
+function pardoned() {
+  document.getElementById('pmain').style.display = 'none';
+  document.getElementById('pres').classList.add('show');
+  confetti();
+  showToast('🎉 Le capitaine est pardonné !');
+  const nb = document.getElementById('nbtn');
+  nb.style.position = ''; nb.style.left = ''; nb.style.top = ''; nb.style.transform = '';
+}
+
+// ======= CONFETTI =======
+function confetti() {
+  const c = document.getElementById('cfx'); c.style.display = 'block';
+  const items = ['⭐','🏴‍☠️','⚓','💛','⛵','🌊','✨','💎','❤️'];
+  const s = document.createElement('style');
+  s.textContent = '@keyframes cfall{0%{transform:translateY(-5vh) rotate(0deg);opacity:1}100%{transform:translateY(110vh) rotate(700deg);opacity:0}}';
+  document.head.appendChild(s);
+  for (let i = 0; i < (window.innerWidth < 600 ? 60 : 120); i++) {
+    const d = document.createElement('div');
+    d.style.cssText = `position:fixed;top:-30px;left:${Math.random()*100}vw;font-size:${Math.random()*20+15}px;pointer-events:none;z-index:201;animation:cfall ${Math.random()*3+2}s linear ${Math.random()*2}s forwards; filter:drop-shadow(0 0 10px rgba(212,160,23,0.5))`;
+    d.textContent = items[Math.floor(Math.random()*items.length)];
+    c.appendChild(d);
+  }
+  setTimeout(()=>{c.innerHTML='';c.style.display='none'},7000);
+}
+
+// ======= TOAST =======
+let toastTimeout;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastTimeout);
+  toastTimeout = setTimeout(()=>t.classList.remove('show'), 3000);
+}
+
+// ======= CARD MICRO-SCENES =======
+function initCards() {
+  document.querySelectorAll('.scc').forEach(c => {
+    const scene = c.dataset.s;
+    c.width = c.offsetWidth || 300; c.height = c.offsetHeight || 200;
+    const cx = c.getContext('2d');
+    let t2 = 0;
+    const draw = () => {
+      t2 += 0.015;
+      const W2 = c.width, H2 = c.height;
+      cx.clearRect(0,0,W2,H2);
+
+      if (scene === 'dawn') {
+        const g = cx.createLinearGradient(0,0,0,H2);
+        g.addColorStop(0,'#0d0314'); g.addColorStop(0.4,'#3a0e08'); g.addColorStop(0.7,'#8a2505'); g.addColorStop(1,'#050810');
+        cx.fillStyle=g; cx.fillRect(0,0,W2,H2);
+        const sg = cx.createRadialGradient(W2*.5,H2*.7,0,W2*.5,H2*.7,H2*.9);
+        sg.addColorStop(0,'rgba(255,160,50,0.6)'); sg.addColorStop(0.5,'rgba(200,50,5,0.2)'); sg.addColorStop(1,'transparent');
+        cx.fillStyle=sg; cx.fillRect(0,0,W2,H2);
+      } else if (scene === 'sail') {
+        const g = cx.createLinearGradient(0,0,0,H2);
+        g.addColorStop(0,'#01030a'); g.addColorStop(0.5,'#05101a'); g.addColorStop(1,'#010810');
+        cx.fillStyle=g; cx.fillRect(0,0,W2,H2);
+        for(let i=0;i<20;i++){const sy=(i*45+t2*10)%H2;cx.fillStyle=`rgba(255,250,200,${0.1+Math.sin(i+t2)*0.1})`;cx.beginPath();cx.arc(W2*(0.1+i*0.04),sy,0.8,0,Math.PI*2);cx.fill();}
+      } else if (scene === 'storm') {
+        cx.fillStyle='#020205'; cx.fillRect(0,0,W2,H2);
+        cx.save(); cx.strokeStyle='rgba(160,180,255,0.6)'; cx.lineWidth=1.5;
+        if(Math.random()<0.05){const lx=Math.random()*W2;cx.beginPath();cx.moveTo(lx,0);cx.lineTo(lx+Math.random()*30-15,H2*.6);cx.stroke();}
+        cx.globalAlpha=0.08;
+        for(let y=0;y<H2;y+=4){cx.fillStyle=`rgba(120,140,220,${Math.random()*0.3})`;cx.fillRect(Math.random()*W2,y,1.5,3);}
+        cx.restore();
+      } else if (scene === 'stars') {
+        cx.fillStyle='#000103'; cx.fillRect(0,0,W2,H2);
+        for(let i=0;i<40;i++){const a=0.3+Math.sin(t2+i*0.8)*0.6;cx.fillStyle=`rgba(255,250,200,${a})`;cx.beginPath();cx.arc(W2*((i*0.25+0.05)%1),(H2*((i*0.15+0.1)%1)*0.8+H2*.05),0.8+Math.sin(i)*0.5,0,Math.PI*2);cx.fill();}
+        const mg=cx.createRadialGradient(W2*.75,H2*.25,0,W2*.75,H2*.25,H2*.5);
+        mg.addColorStop(0,'rgba(255,240,180,0.15)'); mg.addColorStop(1,'transparent');
+        cx.fillStyle=mg; cx.fillRect(0,0,W2,H2);
+      } else if (scene === 'island') {
+        const g = cx.createLinearGradient(0,0,0,H2);
+        g.addColorStop(0,'#010810'); g.addColorStop(0.6,'#052010'); g.addColorStop(1,'#01080a');
+        cx.fillStyle=g; cx.fillRect(0,0,W2,H2);
+        cx.fillStyle='rgba(5,30,10,0.9)'; cx.beginPath(); cx.ellipse(W2*.5,H2*.85,W2*.45,H2*.25,0,0,Math.PI*2); cx.fill();
+        for(let i=0;i<15;i++){const a=0.15+Math.sin(t2*0.6+i)*0.15;cx.fillStyle=`rgba(255,250,180,${a})`;cx.beginPath();cx.arc(W2*(0.08+i*0.06),(H2*0.08+i*H2*0.05)%H2*.6,0.6,0,Math.PI*2);cx.fill();}
+      } else {
+        const g = cx.createLinearGradient(0,0,0,H2);
+        g.addColorStop(0,'#050010'); g.addColorStop(0.5,'#120020'); g.addColorStop(1,'#05000a');
+        cx.fillStyle=g; cx.fillRect(0,0,W2,H2);
+        for(let i=0;i<25;i++){const ht=0.3+Math.sin(t2+i*.6)*0.5;cx.fillStyle=`rgba(255,210,60,${ht*0.4})`;const bx=Math.sin(i*2.2)*W2*.45+W2*.5;const by=Math.cos(i*1.8)*H2*.4+H2*.5;cx.beginPath();cx.arc(bx,by,1.5+Math.sin(t2*0.8+i)*0.8,0,Math.PI*2);cx.fill();}
+      }
+      requestAnimationFrame(draw);
+    };
+    draw();
+  });
+}
+
+// ======= CLICK SPARKLE (Desktop only to prevent lag on mobile) =======
+if(!isTouch) {
+  document.addEventListener('click', e => {
+    const emojis = ['✨','⭐','💫','🔥','💛'];
+    const el = document.createElement('div');
+    el.style.cssText = `position:fixed;left:${e.clientX-12}px;top:${e.clientY-12}px;font-size:22px;pointer-events:none;z-index:9998;animation:sparkle 0.6s ease-out forwards;filter:drop-shadow(0 0 8px rgba(255,200,50,0.8))`;
+    el.textContent = emojis[Math.floor(Math.random()*emojis.length)];
+    document.body.appendChild(el);
+    if (!document.getElementById('sps')) {
+      const s = document.createElement('style'); s.id='sps';
+      s.textContent='@keyframes sparkle{0%{opacity:1;transform:scale(0) translateY(0)}50%{opacity:1;transform:scale(1.5) translateY(-15px)}100%{opacity:0;transform:scale(0.5) translateY(-35px)}}';
+      document.head.appendChild(s);
+    }
+    setTimeout(()=>el.remove(), 600);
+  });
+}
+
+// ======= INIT =======
+window.addEventListener('load', () => {
+  setTimeout(drawMap, 200);
+  setTimeout(initCards, 300);
+  // Re-draw map on resize to prevent distortion
+  let resizeTimer;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => { drawMap(); }, 250);
+  });
+});
+</script>
+</body>
+</html>

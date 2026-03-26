@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pour Syrine — Une Lettre des Mers</title>
+<link href="https://fonts.googleapis.com/css2?family=Pirata+One&family=Cinzel+Decorative:wght@400;700;900&family=Cinzel:wght@400;600&family=IM+Fell+English:ital@0;1&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--gold:#D4A017;--gold2:#F5CC5A;--gold3:#8B6508;--deep:#020810;--mid:#050f1e;--parch:#F2E4C0;--parch2:#C9A84C;--parch3:#7A5C2E;--red:#8B1515}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--deep)}
+body{font-family:'IM Fell English',Georgia,serif;cursor:none}
+#cursor{position:fixed;width:32px;height:32px;pointer-events:none;z-index:99999;transform:translate(-50%,-50%);font-size:22px;transition:transform 0.08s}
+canvas#scene{position:fixed;inset:0;z-index:0;width:100%;height:100%}
+#grain{position:fixed;inset:0;z-index:2;pointer-events:none;opacity:0.035;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");animation:gr 0.12s steps(1) infinite}
+@keyframes gr{0%{transform:translate(0,0)}20%{transform:translate(-2%,-3%)}40%{transform:translate(3%,1%)}60%{transform:translate(-1%,4%)}80%{transform:translate(4%,-2%)}100%{transform:translate(-2%,3%)}}
+#vignette{position:fixed;inset:0;z-index:3;pointer-events:none;background:radial-gradient(ellipse at center,transparent 35%,rgba(0,0,0,0.9) 100%)}
+#light{position:fixed;inset:0;z-index:4;pointer-events:none;background:transparent;transition:background 0.05s}
+
+/* PAGES */
+.page{position:fixed;inset:0;z-index:10;display:flex;flex-direction:column;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity 0.7s ease}
+.page.active{opacity:1;pointer-events:all}
+.page-scroll{overflow-y:auto;overflow-x:hidden;padding-bottom:80px;padding-top:10px;width:100%;height:100%;display:flex;flex-direction:column;align-items:center}
+.page-scroll::-webkit-scrollbar{width:3px}
+.page-scroll::-webkit-scrollbar-thumb{background:rgba(212,160,23,0.25);border-radius:2px}
+
+/* NAV */
+#nav{position:fixed;bottom:0;left:0;right:0;z-index:50;display:flex;justify-content:center;flex-wrap:wrap;gap:0;padding:12px 16px 18px;background:linear-gradient(0deg,rgba(2,8,16,0.98) 55%,transparent)}
+.nb{font-family:'Cinzel',serif;font-size:9.5px;letter-spacing:0.18em;color:rgba(212,160,23,0.45);background:none;border:none;border-top:1px solid transparent;padding:9px 14px 5px;cursor:none;transition:all 0.35s;text-transform:uppercase;position:relative}
+.nb::after{content:'';position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:0;height:1px;background:var(--gold2);transition:width 0.35s}
+.nb:hover,.nb.on{color:var(--gold2);border-top-color:rgba(212,160,23,0.3)}
+.nb:hover::after,.nb.on::after{width:75%}
+
+/* TRANSITION */
+#trans{position:fixed;inset:0;z-index:90;pointer-events:none}
+#twc{position:absolute;inset:0;width:100%;height:100%;opacity:0}
+#tship{position:absolute;font-size:0;bottom:35%;left:-200px;z-index:91;filter:drop-shadow(0 -8px 25px rgba(212,160,23,0.5));transition:none}
+
+/* ======== PAGE HOME ======== */
+#ph .content{text-align:center;padding-bottom:80px;max-width:700px;padding-left:20px;padding-right:20px}
+.skull-wrap{position:relative;display:inline-block;margin-bottom:-5px}
+.skull-glow{position:absolute;inset:-40px;background:radial-gradient(circle,rgba(212,160,23,0.25) 0%,transparent 70%);animation:pg 2.5s ease-in-out infinite;border-radius:50%;pointer-events:none}
+@keyframes pg{0%,100%{transform:scale(0.7);opacity:0.4}50%{transform:scale(1.3);opacity:1}}
+.skull-icon{font-size:clamp(55px,9vw,95px);display:block;animation:sw 4s ease-in-out infinite;filter:drop-shadow(0 0 25px rgba(212,160,23,0.65))}
+@keyframes sw{0%,100%{transform:rotate(-5deg) translateY(0)}50%{transform:rotate(5deg) translateY(-14px)}}
+.sub1{font-family:'Cinzel',serif;font-size:clamp(9px,1.5vw,12px);letter-spacing:0.5em;color:rgba(245,204,90,0.45);text-transform:uppercase;margin:14px 0 8px;animation:fu 1s 0.2s both}
+.mtitle{font-family:'Pirata One',cursive;font-size:clamp(50px,13vw,145px);line-height:0.82;background:linear-gradient(180deg,#fffde0 0%,var(--gold2) 30%,var(--gold) 65%,var(--gold3) 100%);-webkit-background-clip:text;background-clip:text;color:transparent;letter-spacing:2px;filter:drop-shadow(0 0 0 transparent);text-shadow:none;animation:ti 1.3s cubic-bezier(0.16,1,0.3,1) both}
+@keyframes ti{from{transform:translateY(110px) skewY(3deg);opacity:0;filter:blur(8px)}to{transform:translateY(0) skewY(0);opacity:1;filter:blur(0)}}
+.divg{display:flex;align-items:center;gap:14px;margin:18px auto;max-width:350px;animation:fu 1s 0.4s both}
+.divg::before,.divg::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,transparent,var(--gold3),transparent)}
+.divg span{color:var(--gold);font-size:16px}
+.fname{font-family:'Pirata One',cursive;font-size:clamp(24px,5.5vw,60px);color:var(--gold2);animation:fu 1s 0.5s both,gs 3s 1.5s ease-in-out infinite;filter:drop-shadow(0 0 18px rgba(212,160,23,0.55))}
+@keyframes gs{0%,100%{filter:drop-shadow(0 0 12px rgba(212,160,23,0.4))}50%{filter:drop-shadow(0 0 45px rgba(245,204,90,0.95)) drop-shadow(0 0 80px rgba(212,160,23,0.4))}}
+@keyframes fu{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:translateY(0)}}
+.ebtn{font-family:'Cinzel Decorative',serif;font-size:clamp(12px,1.8vw,16px);letter-spacing:0.1em;color:#0a0800;background:linear-gradient(135deg,#fffde0,var(--gold2) 40%,var(--gold) 70%,#906010);border:none;padding:15px 55px;cursor:none;position:relative;overflow:hidden;clip-path:polygon(14px 0,calc(100% - 14px) 0,100% 50%,calc(100% - 14px) 100%,14px 100%,0 50%);box-shadow:0 0 35px rgba(212,160,23,0.45),0 0 70px rgba(212,160,23,0.15);transition:all 0.3s;animation:fu 1s 0.8s both;margin-top:22px}
+.ebtn::after{content:'';position:absolute;inset:0;background:linear-gradient(110deg,transparent 38%,rgba(255,255,255,0.35) 50%,transparent 62%);transform:translateX(-120%);animation:sh 3.5s 2s infinite}
+@keyframes sh{0%{transform:translateX(-120%)}18%,100%{transform:translateX(220%)}}
+.ebtn:hover{transform:scale(1.06);box-shadow:0 0 55px rgba(245,204,90,0.75),0 0 110px rgba(212,160,23,0.35)}
+
+/* ======== PAGE LETTER ======== */
+.cinematic-title{font-family:'Cinzel Decorative',serif;font-size:clamp(16px,2.8vw,28px);color:var(--gold2);text-align:center;letter-spacing:0.08em;margin-bottom:4px;text-shadow:0 0 25px rgba(212,160,23,0.45)}
+.cinematic-sub{font-family:'Cinzel',serif;font-size:9.5px;letter-spacing:0.35em;color:rgba(212,160,23,0.3);text-align:center;text-transform:uppercase;margin-bottom:20px}
+.scroll{max-width:730px;width:calc(100% - 30px);position:relative;
+  background:repeating-linear-gradient(0deg,transparent,transparent 27px,rgba(120,80,20,0.07) 28px),
+  linear-gradient(155deg,#f5e6c0 0%,#ede0a8 20%,#f0dfa0 40%,#e6d488 60%,#f2e4b0 80%,#e8d090 100%);
+  border-radius:5px;padding:52px 55px 65px;
+  box-shadow:0 0 0 1px rgba(120,80,20,0.3),0 0 0 4px rgba(70,40,10,0.45),0 0 0 6px rgba(120,80,20,0.2),0 25px 80px rgba(0,0,0,0.92),inset 0 0 50px rgba(120,60,10,0.12)}
+.scroll::before{content:'';position:absolute;inset:0;border-radius:5px;background:radial-gradient(ellipse at 50% 0%,rgba(255,255,190,0.25) 0%,transparent 55%),radial-gradient(ellipse at 50% 100%,rgba(60,30,0,0.18) 0%,transparent 55%);pointer-events:none}
+.candle{position:absolute;top:-6px;display:flex;flex-direction:column;align-items:center}
+.candle.l{left:22px}.candle.r{right:22px}
+.flame{width:11px;height:20px;background:radial-gradient(ellipse at 50% 85%,#fff 0%,#ffe060 25%,#ff9500 55%,transparent 100%);border-radius:50% 50% 30% 30%;animation:fl 0.75s ease-in-out infinite alternate;position:relative}
+.flame::after{content:'';position:absolute;top:5px;left:2px;width:7px;height:12px;background:radial-gradient(ellipse at 50% 80%,rgba(255,255,255,0.8),rgba(180,90,0,0.3));border-radius:50%;filter:blur(0.5px)}
+.fglow{position:absolute;top:-18px;width:55px;height:55px;background:radial-gradient(circle,rgba(255,160,0,0.3),transparent 70%);border-radius:50%;animation:fl 0.75s ease-in-out infinite alternate}
+@keyframes fl{0%{transform:scaleX(1) scaleY(1) rotate(-3deg);opacity:0.88}100%{transform:scaleX(0.82) scaleY(1.12) rotate(3deg);opacity:1}}
+.cstick{width:9px;height:48px;background:linear-gradient(90deg,#c8a055,#7a5205,#c8a055);border-radius:2px}
+.cbase{width:20px;height:5px;background:linear-gradient(90deg,#c8a055,#7a5205,#c8a055);border-radius:3px}
+.corn{position:absolute;width:45px;height:45px;border-color:rgba(120,80,20,0.4);border-style:solid}
+.corn.tl{top:10px;left:10px;border-width:1.5px 0 0 1.5px}
+.corn.tr{top:10px;right:10px;border-width:1.5px 1.5px 0 0}
+.corn.bl{bottom:10px;left:10px;border-width:0 0 1.5px 1.5px}
+.corn.br{bottom:10px;right:10px;border-width:0 1.5px 1.5px 0}
+.seal{position:absolute;bottom:-20px;right:52px;width:62px;height:62px;background:radial-gradient(circle at 38% 32%,#e02525,var(--red));border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px;box-shadow:0 4px 20px rgba(0,0,0,0.75),0 0 0 2px rgba(120,20,20,0.5),inset 0 1px 3px rgba(255,255,255,0.15);transform:rotate(-11deg);animation:si 0.7s 0.4s cubic-bezier(0.34,1.56,0.64,1) both}
+@keyframes si{from{transform:rotate(-11deg) scale(0)}to{transform:rotate(-11deg) scale(1)}}
+.lhead{font-family:'Cinzel Decorative',serif;font-size:clamp(16px,3.5vw,30px);color:#280e00;text-align:center;margin-bottom:3px;line-height:1.15}
+.lmeta{font-family:'Cinzel',serif;font-size:10px;letter-spacing:0.18em;color:#6a4015;text-align:center;margin-bottom:18px;text-transform:uppercase}
+.ldiv{text-align:center;color:rgba(120,70,20,0.55);font-size:15px;letter-spacing:9px;margin:14px 0}
+.ltxt{font-family:'IM Fell English',Georgia,serif;font-size:clamp(13.5px,1.9vw,16px);line-height:1.95;color:#180700}
+.ltxt p{margin-bottom:15px;text-indent:26px}
+.ltxt .sal{font-family:'Cinzel',serif;font-size:16px;font-weight:600;text-indent:0;color:#220c00;margin-bottom:16px}
+.ltxt em{font-style:italic;color:#2e1000}
+.ltxt .sig{text-indent:0;text-align:right;margin-top:20px}
+.ltxt .signame{font-family:'Pirata One',cursive;font-size:28px;color:#2e1000;display:block;margin-top:3px}
+.etog{font-family:'Cinzel',serif;font-size:9px;letter-spacing:0.2em;color:rgba(212,160,23,0.35);background:none;border:1px dashed rgba(212,160,23,0.18);padding:7px 18px;cursor:none;margin:18px auto 0;display:block;text-transform:uppercase;transition:all 0.3s;border-radius:2px}
+.etog:hover{color:var(--gold);border-color:rgba(212,160,23,0.4)}
+#earea{display:none;width:100%;max-width:730px;margin-top:14px}
+#earea.show{display:block}
+#eta{width:100%;min-height:170px;background:rgba(2,8,16,0.88);color:var(--parch);border:1px solid rgba(212,160,23,0.25);padding:16px;font-family:'IM Fell English',serif;font-size:14.5px;line-height:1.7;resize:vertical;border-radius:3px}
+#eta:focus{outline:none;border-color:rgba(212,160,23,0.5)}
+#eta::placeholder{color:rgba(201,168,76,0.3)}
+.ebtns{display:flex;gap:10px;justify-content:flex-end;margin-top:10px}
+.bg{font-family:'Cinzel',serif;font-size:10.5px;letter-spacing:0.1em;padding:9px 22px;border:none;cursor:none;text-transform:uppercase;transition:all 0.3s;border-radius:2px}
+.bg.p{background:linear-gradient(135deg,var(--gold2),var(--gold));color:var(--deep);box-shadow:0 2px 12px rgba(212,160,23,0.3)}
+.bg.p:hover{transform:translateY(-2px);box-shadow:0 5px 22px rgba(212,160,23,0.55)}
+.bg.s{background:transparent;color:rgba(212,160,23,0.4);border:1px solid rgba(212,160,23,0.2)}
+.bg.s:hover{color:var(--gold);border-color:rgba(212,160,23,0.4)}
+
+/* ======== PAGE MAP ======== */
+#map-canvas{width:100%;max-width:880px;border-radius:3px;border:3px solid rgba(120,80,20,0.55);box-shadow:0 0 0 1px rgba(212,160,23,0.18),0 18px 60px rgba(0,0,0,0.92);display:block;margin:14px 0}
+.clues-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;max-width:880px;width:100%}
+.clue{background:linear-gradient(135deg,rgba(4,12,24,0.92),rgba(2,8,16,0.96));border:1px solid rgba(212,160,23,0.12);border-radius:5px;padding:16px;cursor:none;transition:all 0.4s;position:relative;overflow:hidden}
+.clue::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(212,160,23,0.06),transparent);opacity:0;transition:opacity 0.3s}
+.clue:hover::before,.clue.open::before{opacity:1}
+.clue:hover{border-color:rgba(212,160,23,0.4);transform:translateY(-3px);box-shadow:0 10px 30px rgba(0,0,0,0.5),0 0 18px rgba(212,160,23,0.08)}
+.clue.open{border-color:rgba(212,160,23,0.55);background:linear-gradient(135deg,rgba(212,160,23,0.1),rgba(2,8,16,0.96))}
+.cico{font-size:30px;margin-bottom:9px;display:block;filter:drop-shadow(0 0 7px rgba(212,160,23,0.45))}
+.clabel{font-family:'Cinzel',serif;font-size:9px;letter-spacing:0.2em;color:rgba(212,160,23,0.45);text-transform:uppercase;margin-bottom:5px}
+.cmsg{font-family:'IM Fell English',serif;font-size:13.5px;color:var(--parch);line-height:1.6;display:none;opacity:0;transition:opacity 0.5s}
+.clue.open .cmsg{display:block;opacity:1}
+.chint{font-size:10.5px;color:rgba(212,160,23,0.28);font-style:italic;margin-top:5px}
+.clue.open .chint{display:none}
+.tbox{background:linear-gradient(135deg,rgba(212,160,23,0.12),rgba(2,8,16,0.96));border:2px solid rgba(212,160,23,0.5);border-radius:6px;padding:25px;max-width:880px;width:100%;margin-top:16px;display:none;animation:rev 1s cubic-bezier(0.16,1,0.3,1)}
+.tbox.show{display:block}
+@keyframes rev{from{opacity:0;transform:scale(0.88) translateY(18px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.tbox h3{font-family:'Pirata One',cursive;font-size:30px;color:var(--gold2);margin-bottom:9px;text-shadow:0 0 18px rgba(212,160,23,0.45)}
+.tbox p{font-family:'IM Fell English',serif;font-size:15px;color:var(--parch);line-height:1.7}
+
+/* ======== PAGE STORY ======== */
+.story-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(255px,1fr));gap:18px;max-width:940px;width:100%;margin-top:18px}
+.scard{position:relative;border-radius:7px;overflow:hidden;cursor:none;transition:all 0.45s;border:1px solid rgba(212,160,23,0.1);background:rgba(4,12,24,0.82)}
+.scard:hover{border-color:rgba(212,160,23,0.4);transform:translateY(-5px) scale(1.008);box-shadow:0 18px 50px rgba(0,0,0,0.7),0 0 28px rgba(212,160,23,0.12)}
+.scene-area{height:190px;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.scene-area canvas{position:absolute;inset:0;width:100%;height:100%}
+.card-emoji{font-size:68px;z-index:2;position:relative;filter:drop-shadow(0 0 18px rgba(212,160,23,0.55));animation:fc 3s ease-in-out infinite}
+@keyframes fc{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-11px) rotate(3deg)}}
+.cbody{padding:17px 19px 20px}
+.cch{font-family:'Cinzel',serif;font-size:8.5px;letter-spacing:0.28em;color:rgba(212,160,23,0.38);text-transform:uppercase;margin-bottom:5px}
+.ctitle{font-family:'Pirata One',cursive;font-size:21px;color:var(--gold2);margin-bottom:7px;line-height:1.2;text-shadow:0 0 12px rgba(212,160,23,0.25)}
+.ctext{font-family:'IM Fell English',serif;font-size:13px;color:rgba(242,228,192,0.65);line-height:1.65}
+.scard-sp{border-color:rgba(212,160,23,0.42);box-shadow:0 0 28px rgba(212,160,23,0.1)}
+
+/* ======== PAGE PARDON ======== */
+#pp .content{text-align:center;padding:0 20px 80px;max-width:660px}
+.pcrown{font-size:58px;display:block;margin:0 auto 4px;filter:drop-shadow(0 0 18px rgba(212,160,23,0.75));animation:fc 2s ease-in-out infinite}
+.ptitle{font-family:'Pirata One',cursive;font-size:clamp(34px,7vw,80px);background:linear-gradient(180deg,#fffde0,var(--gold2),var(--gold));-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 3px 12px rgba(212,160,23,0.35));margin-bottom:7px}
+.pquote{font-family:'IM Fell English',serif;font-style:italic;font-size:clamp(14px,2.2vw,17px);color:rgba(212,160,23,0.55);border-left:2px solid rgba(212,160,23,0.3);padding-left:16px;text-align:left;margin:18px 0 22px;line-height:1.85}
+.pmsg{font-family:'IM Fell English',serif;font-size:clamp(14.5px,2vw,17px);color:rgba(242,228,192,0.82);line-height:1.88;margin-bottom:28px}
+.bheart{font-size:78px;display:block;margin:0 auto 26px;animation:hb 1.25s ease-in-out infinite;filter:drop-shadow(0 0 22px rgba(220,50,50,0.85))}
+@keyframes hb{0%,100%{transform:scale(1)}15%{transform:scale(1.24)}30%{transform:scale(1)}45%{transform:scale(1.17)}}
+.choices{display:flex;gap:18px;justify-content:center;flex-wrap:wrap}
+.ybtn{font-family:'Cinzel Decorative',serif;font-size:clamp(12px,1.8vw,16px);color:#050e05;background:linear-gradient(135deg,#a8f0a8,#2ecc71,#1a7a3d);border:none;padding:17px 52px;cursor:none;border-radius:3px;box-shadow:0 4px 22px rgba(46,204,113,0.45),0 0 45px rgba(46,204,113,0.15);transition:all 0.3s;letter-spacing:0.04em}
+.ybtn:hover{transform:translateY(-3px) scale(1.04);box-shadow:0 9px 38px rgba(46,204,113,0.65),0 0 70px rgba(46,204,113,0.25)}
+.nbtn{font-family:'Cinzel',serif;font-size:clamp(11px,1.6vw,14px);color:rgba(212,160,23,0.32);background:transparent;border:1px solid rgba(212,160,23,0.14);padding:17px 35px;cursor:none;border-radius:3px;transition:all 0.5s;letter-spacing:0.1em}
+#pres{display:none;animation:rev 1.2s cubic-bezier(0.16,1,0.3,1)}
+#pres.show{display:block}
+#pres h2{font-family:'Pirata One',cursive;font-size:clamp(28px,6vw,62px);color:var(--gold2);text-shadow:0 0 35px rgba(212,160,23,0.65);margin:18px 0 14px}
+#pres p{font-family:'IM Fell English',serif;font-size:clamp(14.5px,2vw,17.5px);color:var(--parch);line-height:1.82;max-width:500px;margin:0 auto}
+
+/* CONFETTI */
+#cfx{position:fixed;inset:0;pointer-events:none;z-index:200;display:none}
+
+/* TOAST */
+#toast{position:fixed;bottom:88px;left:50%;transform:translateX(-50%) translateY(55px);background:rgba(2,8,16,0.95);border:1px solid rgba(212,160,23,0.38);color:var(--parch);font-family:'Cinzel',serif;font-size:10px;letter-spacing:0.15em;padding:11px 22px;border-radius:28px;z-index:300;transition:transform 0.4s cubic-bezier(0.34,1.56,0.64,1),opacity 0.4s;opacity:0;white-space:nowrap;text-transform:uppercase}
+#toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+
+@media(max-width:580px){.scroll{padding:38px 20px 58px}.candle{display:none}.choices{flex-direction:column;align-items:center}}
+</style>
+</head>
+<body>
+
+<canvas id="scene"></canvas>
+<div id="grain"></div>
+<div id="vignette"></div>
+<div id="light"></div>
+<div id="cursor">⚓</div>
+
+<!-- Transition layer -->
+<div id="trans">
+  <canvas id="twc"></canvas>
+  <div id="tship"></div>
+</div>
+
+<!-- ====== PAGE: HOME ====== -->
+<div class="page active" id="ph">
+  <div class="content">
+    <div class="skull-wrap">
+      <div class="skull-glow"></div>
+      <span class="skull-icon">🏴‍☠️</span>
+    </div>
+    <div class="sub1">— Un message gravé dans les étoiles de la mer —</div>
+    <div class="mtitle">Pour<br>Syrine</div>
+    <div class="divg"><span>⚓</span></div>
+    <div class="fname">✦ Le Voyage du Pardon ✦</div>
+    <button class="ebtn" onclick="goTo('letter')">Embarquer ⛵</button>
+  </div>
+</div>
+
+<!-- ====== PAGE: LETTER ====== -->
+<div class="page" id="pl">
+  <div class="page-scroll">
+    <div style="max-width:730px;width:100%;padding:0 15px">
+      <div class="cinematic-title">📜 La Lettre du Capitaine</div>
+      <div class="cinematic-sub">Scellée à la cire rouge — livrée par les vents des mers</div>
+      <div class="scroll">
+        <div class="corn tl"></div><div class="corn tr"></div>
+        <div class="corn bl"></div><div class="corn br"></div>
+        <div class="candle l">
+          <div class="fglow"></div>
+          <div class="flame"></div>
+          <div class="cstick"></div><div class="cbase"></div>
+        </div>
+        <div class="candle r" style="animation-delay:-0.4s">
+          <div class="fglow" style="animation-delay:-0.4s"></div>
+          <div class="flame" style="animation-delay:-0.4s"></div>
+          <div class="cstick"></div><div class="cbase"></div>
+        </div>
+        <div class="seal">🏴‍☠️</div>
+        <div class="lhead">Ma chère Syrine</div>
+        <div class="lmeta">⚓ Lettre de bord — Mer des Caraïbes, nuit sans lune ⚓</div>
+        <div class="ldiv">✦ ✦ ✦</div>
+        <div class="ltxt" id="ldisplay">
+          <p class="sal">À toi, Syrine,</p>
+          <p>Sur ces mers tumultueuses, j'ai perdu le cap — et avec lui, une partie de ce qui nous était précieux. Comme un capitaine qui abandonne son gouvernail aux caprices de la tempête, j'ai navigué à contre-courant de ce qui était juste entre nous.</p>
+          <p>Si j'étais Jack Sparrow, je dirais sûrement : <em>"Ce n'est pas la faute du rhum, mon amour — c'est la mienne."</em> Mais contrairement à lui, je n'ai aucune ruse pour esquiver la vérité : je t'ai blessée, et cela pèse dans mon cœur comme une ancre au fond de l'abîme.</p>
+          <p>Chaque vague qui frappe la coque me rappelle ta voix. Chaque étoile dans ce ciel noir me rappelle tes yeux. Même les dauphins semblent me souffler : <em>"Retourne vers elle, idiot — et dis-lui la vérité."</em></p>
+          <p>Je ne suis pas parfait — loin s'en faut. Mais je sais avec certitude que tu es le trésor le plus précieux que j'aie jamais trouvé. Plus que tout l'or des Caraïbes, plus que la Perle Noire elle-même.</p>
+          <p>Alors je baisse le pavillon noir ce soir, et je hisse le blanc. Non par lâcheté — mais parce que tu vaux chaque once d'humilité que je possède, et bien davantage encore.</p>
+          <p class="sig">Du fond des mers, avec tout mon cœur,<span class="signame">Ton Capitaine ❤️</span></p>
+        </div>
+        <div class="ldiv">✦ ✦ ✦</div>
+      </div>
+      <button class="etog" onclick="toggleEdit()">✒ Écrire ma propre lettre</button>
+      <div id="earea">
+        <textarea id="eta" placeholder="Écris ici ta lettre pour Syrine..."></textarea>
+        <div class="ebtns">
+          <button class="bg s" onclick="resetL()">Réinitialiser</button>
+          <button class="bg p" onclick="saveL()">⚓ Sceller la lettre</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ====== PAGE: MAP ====== -->
+<div class="page" id="pm">
+  <div class="page-scroll">
+    <div style="max-width:880px;width:100%;padding:0 15px">
+      <div class="cinematic-title">🗺️ Carte au Trésor</div>
+      <div class="cinematic-sub">Six indices dissimulés — révèle-les tous pour trouver le trésor</div>
+      <canvas id="map-canvas"></canvas>
+      <div class="clues-grid">
+        <div class="clue" onclick="openClue(this,0)">
+          <span class="cico">⚓</span>
+          <div class="clabel">Indice I — L'Ancre</div>
+          <div class="cmsg">Comme une ancre, tu es ce qui me retient au monde réel et m'empêche de dériver sans but dans l'immensité de l'existence.</div>
+          <div class="chint">Cliquer pour révéler...</div>
+        </div>
+        <div class="clue" onclick="openClue(this,1)">
+          <span class="cico">🌊</span>
+          <div class="clabel">Indice II — La Vague</div>
+          <div class="cmsg">Même les vagues les plus furieuses s'apaisent au rivage. Ma colère s'est dissipée — ne reste que le regret sincère et l'amour intact.</div>
+          <div class="chint">Cliquer pour révéler...</div>
+        </div>
+        <div class="clue" onclick="openClue(this,2)">
+          <span class="cico">⭐</span>
+          <div class="clabel">Indice III — L'Étoile</div>
+          <div class="cmsg">Les marins naviguaient par les étoiles depuis des millénaires. Tu es mon étoile polaire — sans toi, je perds complètement le nord.</div>
+          <div class="chint">Cliquer pour révéler...</div>
+        </div>
+        <div class="clue" onclick="openClue(this,3)">
+          <span class="cico">🗝️</span>
+          <div class="clabel">Indice IV — La Clé</div>
+          <div class="cmsg">Le vrai trésor n'est pas dans un coffre. C'est ton sourire, ton rire, ta présence. Tu as la clé de mon cœur — et tu le sauras toujours.</div>
+          <div class="chint">Cliquer pour révéler...</div>
+        </div>
+        <div class="clue" onclick="openClue(this,4)">
+          <span class="cico">🏴‍☠️</span>
+          <div class="clabel">Indice V — Le Pavillon</div>
+          <div class="cmsg">Je baisse le drapeau noir pour toi. La seule bataille qui vaille est celle pour reconquérir ta confiance et mériter ton pardon.</div>
+          <div class="chint">Cliquer pour révéler...</div>
+        </div>
+        <div class="clue" onclick="openClue(this,5)">
+          <span class="cico">💎</span>
+          <div class="clabel">Indice VI — Le Trésor</div>
+          <div class="cmsg">X marque l'endroit... et cet endroit, c'est là où tu te trouves. Tu es le trésor au bout de toutes mes aventures. Toujours.</div>
+          <div class="chint">Cliquer pour révéler...</div>
+        </div>
+      </div>
+      <div class="tbox" id="tb">
+        <h3>🎉 Trésor Découvert !</h3>
+        <p>Tu as tout trouvé, Syrine. La dernière escale t'attend — la plus importante de toutes les mers...</p>
+        <button class="bg p" style="margin-top:16px" onclick="goTo('pardon')">→ La Dernière Escale</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ====== PAGE: STORY ====== -->
+<div class="page" id="pst">
+  <div class="page-scroll">
+    <div style="max-width:940px;width:100%;padding:0 15px">
+      <div class="cinematic-title">⚔️ Notre Histoire</div>
+      <div class="cinematic-sub">Les chroniques d'une aventure à deux</div>
+      <div class="story-grid">
+        <div class="scard"><div class="scene-area"><canvas class="scc" data-s="dawn"></canvas><span class="card-emoji">🌅</span></div><div class="cbody"><div class="cch">Chapitre I</div><div class="ctitle">La Première Rencontre</div><div class="ctext">Deux navires se croisant dans la nuit. Notre rencontre n'était pas un hasard — c'était la destinée des mers qui nous a réunis.</div></div></div>
+        <div class="scard"><div class="scene-area"><canvas class="scc" data-s="sail"></canvas><span class="card-emoji" style="animation-delay:-1.5s">⛵</span></div><div class="cbody"><div class="cch">Chapitre II</div><div class="ctitle">Naviguer Ensemble</div><div class="ctext">Chaque moment avec toi est une nouvelle aventure. Même les tempêtes semblent moins terribles quand tu es à mes côtés.</div></div></div>
+        <div class="scard"><div class="scene-area"><canvas class="scc" data-s="storm"></canvas><span class="card-emoji" style="animation-delay:-0.8s">⛈️</span></div><div class="cbody"><div class="cch">Chapitre III</div><div class="ctitle">La Tempête</div><div class="ctext">Toute grande histoire a ses épreuves. Nous avons traversé des eaux agitées — cela ne fait que prouver la solidité de notre navire.</div></div></div>
+        <div class="scard"><div class="scene-area"><canvas class="scc" data-s="stars"></canvas><span class="card-emoji" style="animation-delay:-2s">🌠</span></div><div class="cbody"><div class="cch">Chapitre IV</div><div class="ctitle">Les Étoiles</div><div class="ctext">Dans les nuits calmes, je regarde le ciel et je pense à toi. Chaque étoile porte ton prénom gravé en or pur.</div></div></div>
+        <div class="scard"><div class="scene-area"><canvas class="scc" data-s="island"></canvas><span class="card-emoji" style="animation-delay:-0.5s">🏝️</span></div><div class="cbody"><div class="cch">Chapitre V</div><div class="ctitle">L'Île Paradisiaque</div><div class="ctext">Si je devais trouver l'île parfaite, je ne voudrais y être que si tu es là. Tu es mon paradis, Syrine.</div></div></div>
+        <div class="scard scard-sp"><div class="scene-area"><canvas class="scc" data-s="future"></canvas><span class="card-emoji" style="animation-delay:-1s">❤️</span></div><div class="cbody"><div class="cch" style="color:rgba(212,160,23,0.6)">À Écrire...</div><div class="ctitle" style="color:var(--gold2)">Le Prochain Chapitre</div><div class="ctext" style="color:rgba(242,228,192,0.82)">Ce chapitre dépend de toi — et de ton pardon. Tourne la page avec moi, Syrine. 💛</div></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ====== PAGE: PARDON ====== -->
+<div class="page" id="pp">
+  <div class="content">
+    <span class="pcrown">👑</span>
+    <div class="ptitle">Le Grand Jugement</div>
+    <span class="bheart">❤️</span>
+    <div class="pquote">"Un capitaine sans son équipage n'est rien.<br>Et moi sans toi — je ne suis rien du tout."</div>
+    <div id="pmain">
+      <div class="pmsg">Syrine, j'ai navigué à travers toutes ces pages<br>pour arriver ici, devant toi, le cœur à découvert.<br><br><strong style="font-family:'Cinzel',serif;color:var(--gold2)">Je suis désolé. Vraiment. Du fond des mers.</strong></div>
+      <div class="choices">
+        <button class="ybtn" onclick="pardoned()">✅ Je te pardonne, capitaine !</button>
+        <button class="nbtn" id="nbtn" onclick="runAway()">❌ Pas encore...</button>
+      </div>
+    </div>
+    <div id="pres">
+      <h2>🎉 Pardon Accordé !</h2>
+      <span style="font-size:68px;display:block;margin:16px auto;animation:hb 1s infinite">🥹</span>
+      <p>Syrine, tu es la plus grande des capitaines — celle qui sait pardonner, celle qui est forte, lumineuse, magnifique.<br><br>Je promets de naviguer mieux à tes côtés. Pour toujours, au-delà des 7 mers et plus encore. ❤️🏴‍☠️</p>
+      <div style="margin-top:22px;font-size:46px;display:flex;gap:14px;justify-content:center">
+        <span>⛵</span><span style="animation:fc 2s ease-in-out infinite;display:inline-block">💛</span><span>⛵</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav id="nav">
+  <button class="nb on" onclick="goTo('home')">⚓ Accueil</button>
+  <button class="nb" onclick="goTo('letter')">📜 Lettre</button>
+  <button class="nb" onclick="goTo('map')">🗺️ Trésor</button>
+  <button class="nb" onclick="goTo('story')">⚔️ Histoire</button>
+  <button class="nb" onclick="goTo('pardon')">❤️ Pardon</button>
+</nav>
+
+<div id="cfx"></div>
+<div id="toast"></div>
+
+<script>
+// ======= CURSOR =======
+const cur = document.getElementById('cursor');
+document.addEventListener('mousemove', e => {
+  cur.style.left = e.clientX + 'px';
+  cur.style.top = e.clientY + 'px';
+});
+
+// ======= MAIN CINEMATIC OCEAN =======
+const sc = document.getElementById('scene');
+const ctx = sc.getContext('2d');
+let W, H, T = 0;
+const resize = () => { W = sc.width = window.innerWidth; H = sc.height = window.innerHeight; };
+resize(); window.addEventListener('resize', resize);
+
+// Stars
+const STARS = Array.from({length:130}, () => ({
+  x: Math.random(), y: Math.random() * 0.55,
+  r: Math.random() * 1.4 + 0.2, ph: Math.random() * Math.PI * 2,
+  speed: Math.random() * 0.015 + 0.005
+}));
+
+// Particles (foam)
+const FOAM = Array.from({length:50}, () => ({
+  x: Math.random(), ry: Math.random() * 0.08,
+  r: Math.random() * 1.2 + 0.4, ph: Math.random() * Math.PI * 2,
+  vx: (Math.random() * 0.4 + 0.2) / 1000
+}));
+
+let shipX = 0.25, shipTargetX = 0.25;
+
+function frame() {
+  ctx.clearRect(0, 0, W, H);
+  T += 0.007;
+
+  // — SKY —
+  const sky = ctx.createLinearGradient(0, 0, 0, H * 0.62);
+  sky.addColorStop(0, '#00030a');
+  sky.addColorStop(0.22, '#010b18');
+  sky.addColorStop(0.55, '#020e1e');
+  sky.addColorStop(0.7, '#021528');
+  ctx.fillStyle = sky; ctx.fillRect(0, 0, W, H);
+
+  // — MOON CORONA —
+  const mx = W * 0.73, my = H * 0.17;
+  const corona = ctx.createRadialGradient(mx, my, 0, mx, my, H * 0.28);
+  corona.addColorStop(0, 'rgba(240,220,140,0.22)');
+  corona.addColorStop(0.35, 'rgba(200,170,80,0.08)');
+  corona.addColorStop(1, 'transparent');
+  ctx.fillStyle = corona; ctx.fillRect(0, 0, W, H);
+
+  // — MOON —
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(mx, my, H * 0.058, 0, Math.PI * 2);
+  const mg = ctx.createRadialGradient(mx - H*0.01, my - H*0.01, 0, mx, my, H * 0.058);
+  mg.addColorStop(0, '#fffdf0'); mg.addColorStop(0.65, '#f5e080'); mg.addColorStop(1, '#c0960c');
+  ctx.fillStyle = mg;
+  ctx.shadowBlur = 45; ctx.shadowColor = 'rgba(220,190,60,0.55)';
+  ctx.fill(); ctx.restore();
+  // craters
+  ctx.save(); ctx.globalAlpha = 0.13; ctx.fillStyle = '#907000';
+  [[mx - H*0.02, my - H*0.01, H*0.012], [mx + H*0.018, my + H*0.018, H*0.008], [mx - H*0.008, my + H*0.022, H*0.01]].forEach(([cx2, cy2, cr]) => {
+    ctx.beginPath(); ctx.arc(cx2, cy2, cr, 0, Math.PI * 2); ctx.fill();
+  }); ctx.restore();
+
+  // — STARS —
+  STARS.forEach(s => {
+    s.ph += s.speed;
+    const a = 0.25 + Math.sin(s.ph) * 0.45;
+    ctx.save(); ctx.globalAlpha = a;
+    ctx.fillStyle = '#fffde0';
+    ctx.shadowBlur = 3; ctx.shadowColor = '#ffe060';
+    ctx.beginPath(); ctx.arc(s.x * W, s.y * H, s.r, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+  });
+
+  // — DISTANT ISLAND SILHOUETTE —
+  ctx.save(); ctx.globalAlpha = 0.22;
+  const isl = ctx.createLinearGradient(0, H * 0.5, 0, H * 0.62);
+  isl.addColorStop(0, '#0a1a0a'); isl.addColorStop(1, 'transparent');
+  ctx.fillStyle = isl;
+  ctx.beginPath(); ctx.moveTo(0, H * 0.62);
+  for (let x = 0; x <= W; x += 15) {
+    const vy = H * 0.56 + Math.sin(x * 0.004) * H * 0.055 + Math.sin(x * 0.011 + 1.2) * H * 0.025;
+    ctx.lineTo(x, vy);
+  }
+  ctx.lineTo(W, H * 0.62); ctx.closePath(); ctx.fill(); ctx.restore();
+
+  // — OCEAN LAYERS —
+  const seaY = H * 0.575;
+  for (let L = 5; L >= 0; L--) {
+    const y0 = seaY + L * (H - seaY) / 6;
+    const amp = 10 + L * 7;
+    const spd = T * (0.35 + L * 0.18);
+    const freq = 0.0065 - L * 0.0003;
+
+    ctx.beginPath(); ctx.moveTo(0, y0);
+    for (let x = 0; x <= W + 4; x += 3) {
+      const wy = y0 + Math.sin(x * freq + spd) * amp + Math.cos(x * freq * 0.55 + spd * 0.72) * amp * 0.38 + Math.sin(x * freq * 1.5 + spd * 1.3) * amp * 0.18;
+      ctx.lineTo(x, wy);
+    }
+    ctx.lineTo(W, H); ctx.lineTo(0, H); ctx.closePath();
+
+    const oceanG = ctx.createLinearGradient(0, y0, 0, H);
+    const r = 2 + L * 3, g2 = 7 + L * 5, b = 18 + L * 9;
+    oceanG.addColorStop(0, `rgba(${r},${g2},${b},0.92)`);
+    oceanG.addColorStop(1, 'rgba(0,3,10,1)');
+    ctx.fillStyle = oceanG; ctx.fill();
+
+    if (L < 3) {
+      ctx.beginPath(); ctx.moveTo(0, y0);
+      for (let x = 0; x <= W + 4; x += 3) {
+        const wy = y0 + Math.sin(x * freq + spd) * amp + Math.cos(x * freq * 0.55 + spd * 0.72) * amp * 0.38;
+        ctx.lineTo(x, wy);
+      }
+      ctx.strokeStyle = `rgba(168,220,240,${0.03 + L * 0.012})`;
+      ctx.lineWidth = 1; ctx.stroke();
+    }
+  }
+
+  // — FOAM PARTICLES —
+  FOAM.forEach(p => {
+    p.x += p.vx; if (p.x > 1) p.x = 0; p.ph += 0.025;
+    const wy = seaY + 18 + Math.sin(p.x * W * 0.007 + T) * 14;
+    ctx.save(); ctx.globalAlpha = 0.12 + Math.sin(p.ph) * 0.08;
+    ctx.fillStyle = '#b8dcea';
+    ctx.beginPath(); ctx.arc(p.x * W, wy, p.r * 1.6, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+  });
+
+  // — MOON REFLECTION —
+  ctx.save(); ctx.globalAlpha = 0.09;
+  for (let y = seaY; y < H; y += 5) {
+    const prog = (y - seaY) / (H - seaY);
+    const wid = 10 + prog * 90 + Math.sin(y * 0.12 + T * 2.5) * 9;
+    const rx = W * 0.73 + Math.sin(y * 0.06 + T) * 18;
+    ctx.fillStyle = `rgba(255,245,160,${0.55 * (1 - prog * 0.5)})`;
+    ctx.fillRect(rx - wid / 2, y, wid, 4);
+  }
+  ctx.restore();
+
+  // — SHIP —
+  shipX += (shipTargetX - shipX) * 0.005;
+  const sx = shipX * W;
+  const sy = seaY + Math.sin(T * 0.85) * 9 - 38;
+  const sroll = Math.sin(T * 0.55) * 5;
+  drawShip(sx, sy, sroll);
+
+  // Random lightning
+  if (Math.random() < 0.0015) lightning();
+
+  requestAnimationFrame(frame);
+}
+
+function drawShip(x, y, roll) {
+  ctx.save();
+  ctx.translate(x, y); ctx.rotate(roll * Math.PI / 180);
+
+  // Hull shadow
+  ctx.save(); ctx.globalAlpha = 0.35;
+  ctx.fillStyle = 'rgba(0,0,0,0.6)';
+  ctx.beginPath(); ctx.ellipse(0, 34, 58, 9, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.restore();
+
+  // Hull main
+  ctx.fillStyle = '#120600';
+  ctx.beginPath();
+  ctx.moveTo(-58, 8); ctx.quadraticCurveTo(-62, 22, -46, 30);
+  ctx.lineTo(46, 30); ctx.quadraticCurveTo(62, 22, 58, 8);
+  ctx.lineTo(42, -6); ctx.lineTo(-42, -6); ctx.closePath(); ctx.fill();
+
+  // Gold trim line
+  ctx.strokeStyle = 'rgba(212,160,23,0.55)'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(-56, 9); ctx.lineTo(56, 9); ctx.stroke();
+
+  // Hull plank lines
+  ctx.strokeStyle = 'rgba(100,60,20,0.3)'; ctx.lineWidth = 0.8;
+  for (let i = -32; i < 42; i += 14) {
+    ctx.beginPath(); ctx.moveTo(i, -2); ctx.lineTo(i + 4, 30); ctx.stroke();
+  }
+
+  // Mast
+  ctx.strokeStyle = '#1e0c00'; ctx.lineWidth = 4;
+  ctx.beginPath(); ctx.moveTo(2, -6); ctx.lineTo(2, -105); ctx.stroke();
+
+  // Cross yard
+  ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.moveTo(-42, -72); ctx.lineTo(46, -72); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(-26, -57); ctx.lineTo(28, -57); ctx.stroke();
+
+  // Main sail — billowing
+  const puff = Math.sin(T * 0.75) * 5;
+  ctx.fillStyle = 'rgba(245,235,200,0.9)';
+  ctx.beginPath();
+  ctx.moveTo(-42, -72);
+  ctx.quadraticCurveTo(puff - 8, -62, 2, -6);
+  ctx.lineTo(2, -6);
+  ctx.lineTo(46, -72); ctx.closePath(); ctx.fill();
+  ctx.strokeStyle = 'rgba(120,80,20,0.25)'; ctx.lineWidth = 0.5; ctx.stroke();
+
+  // Sail horizontal lines
+  ctx.strokeStyle = 'rgba(80,50,10,0.18)'; ctx.lineWidth = 0.5;
+  for (let i = 1; i < 4; i++) {
+    const py = -72 + i * 17;
+    ctx.beginPath(); ctx.moveTo(-42, -72); ctx.lineTo(2, py); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(46, -72); ctx.lineTo(2, py); ctx.stroke();
+  }
+
+  // Top sail
+  ctx.fillStyle = 'rgba(240,230,195,0.72)';
+  ctx.beginPath();
+  ctx.moveTo(-26, -57);
+  ctx.quadraticCurveTo(puff - 2, -52, 2, -72);
+  ctx.lineTo(28, -57); ctx.closePath(); ctx.fill();
+
+  // Jolly Roger flag
+  ctx.fillStyle = 'rgba(8,8,8,0.92)';
+  ctx.beginPath(); ctx.moveTo(2, -105); ctx.lineTo(24 + Math.sin(T) * 6, -100); ctx.lineTo(2, -90); ctx.closePath(); ctx.fill();
+
+  // Rigging
+  ctx.strokeStyle = 'rgba(80,50,20,0.45)'; ctx.lineWidth = 0.8;
+  ctx.beginPath(); ctx.moveTo(52, -2); ctx.lineTo(2, -105); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(-52, -2); ctx.lineTo(2, -105); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(46, -72); ctx.lineTo(56, 4); ctx.stroke();
+
+  ctx.restore();
+}
+
+frame();
+
+function lightning() {
+  const el = document.getElementById('light');
+  el.style.background = 'rgba(140,170,255,0.14)';
+  setTimeout(() => el.style.background = 'transparent', 55);
+  setTimeout(() => el.style.background = 'rgba(140,170,255,0.07)', 95);
+  setTimeout(() => el.style.background = 'transparent', 180);
+}
+
+// ======= NAVIGATION WITH SHIP TRANSITION =======
+let curPage = 'home', transitioning = false;
+const pageMap = { home:'ph', letter:'pl', map:'pm', story:'pst', pardon:'pp' };
+const navPages = ['home','letter','map','story','pardon'];
+
+function goTo(id) {
+  if (transitioning || id === curPage) return;
+  transitioning = true;
+
+  const twc = document.getElementById('twc');
+  const tship = document.getElementById('tship');
+  twc.width = window.innerWidth; twc.height = window.innerHeight;
+  const tc = twc.getContext('2d');
+  twc.style.transition = 'opacity 0.25s'; twc.style.opacity = '1';
+
+  tship.style.fontSize = '72px';
+  tship.textContent = '⛵';
+  tship.style.bottom = '36%';
+  tship.style.left = '-180px';
+  tship.style.transition = 'none';
+
+  let p = 0, animId, done = false;
+  const go = () => {
+    p = Math.min(p + 0.022, 1);
+    const W2 = twc.width, H2 = twc.height;
+    tc.clearRect(0, 0, W2, H2);
+
+    // Wave rising
+    const ease = p < 0.5 ? 2*p*p : -1+(4-2*p)*p; // ease in-out
+    const waveTop = H2 * (1 - ease);
+    const wg = tc.createLinearGradient(0, waveTop, 0, H2);
+    wg.addColorStop(0, '#021528'); wg.addColorStop(0.4, '#020e1e'); wg.addColorStop(1, '#00030a');
+    tc.fillStyle = wg;
+    tc.beginPath(); tc.moveTo(0, H2);
+    for (let x = 0; x <= W2; x += 4) {
+      const wy = waveTop + Math.sin(x * 0.012 + p * 15) * 28 + Math.cos(x * 0.007 + p * 8) * 14;
+      tc.lineTo(x, wy);
+    }
+    tc.lineTo(W2, H2); tc.closePath(); tc.fill();
+
+    // Ship sailing
+    const shipPx = -180 + p * (W2 + 400);
+    tship.style.left = shipPx + 'px';
+    const wobble = Math.sin(p * 18) * 7;
+    tship.style.transform = `translateY(${wobble}px) rotate(${wobble * 0.4}deg)`;
+
+    if (p < 1) {
+      animId = requestAnimationFrame(go);
+    } else if (!done) {
+      done = true;
+      document.getElementById(pageMap[curPage]).classList.remove('active');
+      document.getElementById(pageMap[id]).classList.add('active');
+      curPage = id;
+      document.querySelectorAll('.nb').forEach((b, i) => b.classList.toggle('on', navPages[i] === id));
+
+      // Reveal - wave drops
+      let p2 = 1;
+      const reveal = () => {
+        p2 = Math.max(p2 - 0.028, 0);
+        const W2 = twc.width, H2 = twc.height;
+        tc.clearRect(0, 0, W2, H2);
+        const ease2 = p2 < 0.5 ? 2*p2*p2 : -1+(4-2*p2)*p2;
+        const wt = H2 * (1 - ease2);
+        const wg2 = tc.createLinearGradient(0, wt, 0, H2);
+        wg2.addColorStop(0, '#021528'); wg2.addColorStop(0.4, '#020e1e'); wg2.addColorStop(1, '#00030a');
+        tc.fillStyle = wg2;
+        tc.beginPath(); tc.moveTo(0, H2);
+        for (let x = 0; x <= W2; x += 4) {
+          const wy = wt + Math.sin(x * 0.012 + p2 * 10) * 22 + Math.cos(x * 0.007 + p2 * 6) * 10;
+          tc.lineTo(x, wy);
+        }
+        tc.lineTo(W2, H2); tc.closePath(); tc.fill();
+        if (p2 > 0) { requestAnimationFrame(reveal); }
+        else {
+          twc.style.opacity = '0';
+          tship.style.fontSize = '0';
+          setTimeout(() => { tc.clearRect(0,0,twc.width,twc.height); transitioning = false; }, 300);
+        }
+      };
+      requestAnimationFrame(reveal);
+    }
+  };
+  requestAnimationFrame(go);
+}
+
+// ======= TREASURE MAP =======
+function drawMap() {
+  const c = document.getElementById('map-canvas');
+  if (!c || !c.offsetWidth) return;
+  c.width = c.offsetWidth;
+  c.height = Math.round(c.offsetWidth * 0.42);
+  const cx = c.getContext('2d'), W2 = c.width, H2 = c.height;
+
+  // Parchment base
+  const pg = cx.createLinearGradient(0, 0, W2, H2);
+  pg.addColorStop(0, '#e8d06a'); pg.addColorStop(0.35, '#d4b040'); pg.addColorStop(0.7, '#c09830'); pg.addColorStop(1, '#a07818');
+  cx.fillStyle = pg; cx.fillRect(0, 0, W2, H2);
+
+  // Texture dots
+  for (let i = 0; i < 600; i++) {
+    cx.fillStyle = `rgba(${Math.random()>0.5?'70,35,0':'220,175,55'},${Math.random()*0.045})`;
+    cx.fillRect(Math.random()*W2, Math.random()*H2, Math.random()*3+1, Math.random()*3+1);
+  }
+
+  // Burn edges
+  const eg = cx.createRadialGradient(W2/2,H2/2,Math.min(W2,H2)*0.22,W2/2,H2/2,Math.min(W2,H2)*0.72);
+  eg.addColorStop(0, 'transparent'); eg.addColorStop(1, 'rgba(15,4,0,0.72)');
+  cx.fillStyle = eg; cx.fillRect(0, 0, W2, H2);
+
+  // Age stains
+  cx.save(); cx.globalAlpha = 0.07;
+  [[W2*.28,H2*.18,38],[W2*.68,H2*.58,22],[W2*.12,H2*.68,28],[W2*.82,H2*.32,18]].forEach(([sx,sy,sr])=>{
+    const sg=cx.createRadialGradient(sx,sy,0,sx,sy,sr);
+    sg.addColorStop(0,'rgba(60,25,0,0.8)'); sg.addColorStop(1,'transparent');
+    cx.fillStyle=sg; cx.beginPath(); cx.arc(sx,sy,sr,0,Math.PI*2); cx.fill();
+  }); cx.restore();
+
+  // Islands
+  const islands = [[W2*.17,H2*.4,52,32,-0.12,'#4a2808'],[W2*.6,H2*.22,75,40,0.08,'#3d2005'],[W2*.78,H2*.62,40,25,0.22,'#2e1800']];
+  islands.forEach(([ix,iy,rx,ry,rot,col])=>{
+    cx.save(); cx.translate(ix,iy); cx.rotate(rot);
+    cx.fillStyle=col; cx.beginPath(); cx.ellipse(0,0,rx,ry,0,0,Math.PI*2); cx.fill();
+    cx.restore();
+  });
+
+  // Dotted path
+  cx.setLineDash([5,8]); cx.strokeStyle='rgba(40,12,0,0.6)'; cx.lineWidth=1.5;
+  cx.beginPath(); cx.moveTo(W2*.04,H2*.82);
+  cx.bezierCurveTo(W2*.18,H2*.5,W2*.38,H2*.7,W2*.48,H2*.48);
+  cx.bezierCurveTo(W2*.6,H2*.22,W2*.7,H2*.48,W2*.84,H2*.32);
+  cx.stroke(); cx.setLineDash([]);
+
+  // X mark
+  const xc=W2*.84, yc=H2*.32;
+  cx.strokeStyle='rgba(120,12,12,0.9)'; cx.lineWidth=3; cx.lineCap='round';
+  cx.beginPath(); cx.moveTo(xc-13,yc-13); cx.lineTo(xc+13,yc+13); cx.stroke();
+  cx.beginPath(); cx.moveTo(xc+13,yc-13); cx.lineTo(xc-13,yc+13); cx.stroke();
+
+  // Labels
+  cx.font=`bold ${Math.max(10,W2*.014)}px 'IM Fell English',Georgia,serif`;
+  cx.fillStyle='rgba(25,8,0,0.75)'; cx.textAlign='left';
+  cx.fillText('Île de la Réconciliation',W2*.03,H2*.14);
+  cx.font=`italic ${Math.max(9,W2*.012)}px Georgia`;
+  cx.fillStyle='rgba(25,8,0,0.5)'; cx.fillText('Mer du Pardon',W2*.36,H2*.9);
+  cx.font=`bold ${Math.max(9,W2*.012)}px Georgia`;
+  cx.fillStyle='rgba(120,12,12,0.85)'; cx.fillText('Le Trésor',xc-22,yc-18);
+
+  // Compass rose
+  const crx=W2*.07, cry=H2*.78, s=H2*.1;
+  cx.save(); cx.translate(crx,cry);
+  for(let a=0;a<8;a++){
+    cx.save(); cx.rotate(a*Math.PI/4);
+    cx.fillStyle=a===0?'rgba(120,12,12,0.8)':'rgba(25,8,0,0.55)';
+    cx.beginPath(); cx.moveTo(0,-s); cx.lineTo(s*.28,0); cx.lineTo(0,s); cx.lineTo(-s*.28,0); cx.closePath(); cx.fill();
+    cx.restore();
+  }
+  cx.font=`bold ${s*.55}px Georgia`; cx.fillStyle='rgba(25,8,0,0.7)'; cx.textAlign='center';
+  cx.fillText('N',0,-s*1.35); cx.fillText('S',0,s*1.5); cx.restore();
+}
+
+// ======= CLUES =======
+let opened = 0;
+function openClue(el, i) {
+  if (el.classList.contains('open')) return;
+  el.classList.add('open'); opened++;
+  showToast(`💰 Indice ${opened}/6 révélé !`);
+  if (opened === 6) setTimeout(()=>{
+    document.getElementById('tb').classList.add('show');
+    document.getElementById('tb').scrollIntoView({behavior:'smooth'});
+  }, 500);
+}
+
+// ======= LETTER =======
+function toggleEdit() { document.getElementById('earea').classList.toggle('show'); }
+function saveL() {
+  const v = document.getElementById('eta').value.trim();
+  if (!v) return;
+  const el = document.getElementById('ldisplay');
+  el.innerHTML = '<p class="sal">À toi, Syrine,</p>' +
+    v.split('\n').filter(p=>p.trim()).map(p=>`<p>${p}</p>`).join('') +
+    '<p class="sig">Avec tout mon amour,<span class="signame">Ton Capitaine ❤️</span></p>';
+  document.getElementById('earea').classList.remove('show');
+  showToast('📜 Lettre scellée !');
+}
+function resetL() { document.getElementById('eta').value = ''; }
+
+// ======= PARDON =======
+let noC = 0;
+function runAway() {
+  noC++;
+  const b = document.getElementById('nbtn');
+  const msgs = ['Allez... 🥺','Je t\'en supplie !','Siouplait...','Vraiment désolé','Même les pirates pleurent !','🥹 Pitié...'];
+  b.textContent = msgs[Math.min(noC-1, msgs.length-1)];
+  b.style.position = 'fixed'; b.style.zIndex = '150';
+  b.style.left = Math.random() * (window.innerWidth - 200) + 'px';
+  b.style.top = (120 + Math.random() * (window.innerHeight - 280)) + 'px';
+}
+function pardoned() {
+  document.getElementById('pmain').style.display = 'none';
+  document.getElementById('pres').classList.add('show');
+  confetti();
+  showToast('🎉 Le capitaine est pardonné !');
+  const nb = document.getElementById('nbtn');
+  nb.style.position = ''; nb.style.left = ''; nb.style.top = '';
+}
+
+// ======= CONFETTI =======
+function confetti() {
+  const c = document.getElementById('cfx'); c.style.display = 'block';
+  const items = ['⭐','🏴‍☠️','⚓','💛','⛵','🌊','✨','💎','❤️'];
+  const s = document.createElement('style');
+  s.textContent = '@keyframes cfall{0%{transform:translateY(0) rotate(0deg);opacity:1}100%{transform:translateY(115vh) rotate(700deg);opacity:0}}';
+  document.head.appendChild(s);
+  for (let i = 0; i < 110; i++) {
+    const d = document.createElement('div');
+    d.style.cssText = `position:fixed;top:-25px;left:${Math.random()*100}vw;font-size:${Math.random()*16+13}px;pointer-events:none;z-index:201;animation:cfall ${Math.random()*3+2.2}s linear ${Math.random()*2.2}s forwards`;
+    d.textContent = items[Math.floor(Math.random()*items.length)];
+    c.appendChild(d);
+  }
+  setTimeout(()=>{c.innerHTML='';c.style.display='none'},8000);
+}
+
+// ======= TOAST =======
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2800);
+}
+
+// ======= CARD MICRO-SCENES =======
+function initCards() {
+  document.querySelectorAll('.scc').forEach(c => {
+    const scene = c.dataset.s;
+    c.width = c.offsetWidth || 280; c.height = c.offsetHeight || 190;
+    const cx = c.getContext('2d');
+    let t2 = 0;
+    const draw = () => {
+      t2 += 0.012;
+      const W2 = c.width, H2 = c.height;
+      cx.clearRect(0,0,W2,H2);
+
+      if (scene === 'dawn') {
+        const g = cx.createLinearGradient(0,0,0,H2);
+        g.addColorStop(0,'#150520'); g.addColorStop(0.4,'#4a1510'); g.addColorStop(0.7,'#9a3515'); g.addColorStop(1,'#0a1020');
+        cx.fillStyle=g; cx.fillRect(0,0,W2,H2);
+        const sg = cx.createRadialGradient(W2*.5,H2*.65,0,W2*.5,H2*.65,H2*.8);
+        sg.addColorStop(0,'rgba(255,140,40,0.45)'); sg.addColorStop(0.5,'rgba(180,60,10,0.15)'); sg.addColorStop(1,'transparent');
+        cx.fillStyle=sg; cx.fillRect(0,0,W2,H2);
+      } else if (scene === 'sail') {
+        const g = cx.createLinearGradient(0,0,0,H2);
+        g.addColorStop(0,'#01050f'); g.addColorStop(0.55,'#091828'); g.addColorStop(1,'#020c18');
+        cx.fillStyle=g; cx.fillRect(0,0,W2,H2);
+        for(let i=0;i<25;i++){const sy=(i*41+t2*8)%H2;cx.fillStyle=`rgba(255,248,190,${0.08+Math.sin(i+t2)*0.07})`;cx.beginPath();cx.arc(W2*(0.08+i*0.038),sy,0.7,0,Math.PI*2);cx.fill();}
+      } else if (scene === 'storm') {
+        cx.fillStyle='#040408'; cx.fillRect(0,0,W2,H2);
+        cx.save(); cx.strokeStyle='rgba(140,160,255,0.45)'; cx.lineWidth=1;
+        if(Math.random()<0.04){const lx=Math.random()*W2;cx.beginPath();cx.moveTo(lx,0);cx.lineTo(lx+Math.random()*25-12,H2*.55);cx.stroke();}
+        cx.globalAlpha=0.06;
+        for(let y=0;y<H2;y+=3){cx.fillStyle=`rgba(100,120,200,${Math.random()*0.2})`;cx.fillRect(Math.random()*W2,y,1,2);}
+        cx.restore();
+      } else if (scene === 'stars') {
+        cx.fillStyle='#000305'; cx.fillRect(0,0,W2,H2);
+        for(let i=0;i<45;i++){const a=0.25+Math.sin(t2+i*0.7)*0.5;cx.fillStyle=`rgba(255,248,190,${a})`;cx.beginPath();cx.arc(W2*((i*0.22+0.05)%1),(H2*((i*0.17+0.08)%1)*0.9+H2*.05),0.6+Math.sin(i)*0.45,0,Math.PI*2);cx.fill();}
+        const mg=cx.createRadialGradient(W2*.7,H2*.28,0,W2*.7,H2*.28,H2*.45);
+        mg.addColorStop(0,'rgba(255,248,190,0.14)'); mg.addColorStop(1,'transparent');
+        cx.fillStyle=mg; cx.fillRect(0,0,W2,H2);
+      } else if (scene === 'island') {
+        const g = cx.createLinearGradient(0,0,0,H2);
+        g.addColorStop(0,'#010c15'); g.addColorStop(0.55,'#0a2818'); g.addColorStop(1,'#020c10');
+        cx.fillStyle=g; cx.fillRect(0,0,W2,H2);
+        cx.fillStyle='rgba(8,40,15,0.85)'; cx.beginPath(); cx.ellipse(W2*.5,H2*.82,W2*.42,H2*.2,0,0,Math.PI*2); cx.fill();
+        for(let i=0;i<18;i++){const a=0.1+Math.sin(t2*0.5+i)*0.12;cx.fillStyle=`rgba(255,248,190,${a})`;cx.beginPath();cx.arc(W2*(0.05+i*0.053),(H2*0.06+i*H2*0.04)%H2*.55,0.5,0,Math.PI*2);cx.fill();}
+      } else {
+        const g = cx.createLinearGradient(0,0,0,H2);
+        g.addColorStop(0,'#080018'); g.addColorStop(0.55,'#180028'); g.addColorStop(1,'#080015');
+        cx.fillStyle=g; cx.fillRect(0,0,W2,H2);
+        for(let i=0;i<28;i++){const ht=0.25+Math.sin(t2*0.9+i*.55)*0.4;cx.fillStyle=`rgba(255,200,50,${ht*0.35})`;const bx=Math.sin(i*2.1)*W2*.4+W2*.5;const by=Math.cos(i*1.6)*H2*.35+H2*.5;cx.beginPath();cx.arc(bx,by,1+Math.sin(t2*0.7+i)*0.55,0,Math.PI*2);cx.fill();}
+      }
+      requestAnimationFrame(draw);
+    };
+    draw();
+  });
+}
+
+// ======= CLICK SPARKLE =======
+document.addEventListener('click', e => {
+  const emojis = ['✨','⭐','💫','⚓','💛'];
+  const el = document.createElement('div');
+  el.style.cssText = `position:fixed;left:${e.clientX-14}px;top:${e.clientY-14}px;font-size:20px;pointer-events:none;z-index:9998;animation:sparkle 0.65s ease-out forwards`;
+  el.textContent = emojis[Math.floor(Math.random()*emojis.length)];
+  document.body.appendChild(el);
+  if (!document.getElementById('sps')) {
+    const s = document.createElement('style'); s.id='sps';
+    s.textContent='@keyframes sparkle{0%{opacity:1;transform:scale(0) translateY(0)}50%{opacity:1;transform:scale(1.7) translateY(-20px)}100%{opacity:0;transform:scale(0.2) translateY(-44px)}}';
+    document.head.appendChild(s);
+  }
+  setTimeout(()=>el.remove(), 700);
+});
+
+// ======= INIT =======
+window.addEventListener('load', () => {
+  setTimeout(drawMap, 200);
+  setTimeout(initCards, 300);
+  window.addEventListener('resize', ()=>setTimeout(drawMap,100));
+});
+</script>
+</body>
+</html>
